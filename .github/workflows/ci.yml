@@ -27,10 +27,7 @@ jobs:
       - name: Run strict Clippy
         run: cargo clippy --locked --all-targets -- -D warnings
       - name: Verify the product architecture with its own engine
-        shell: bash
-        run: |
-          cargo run --quiet --locked -- tool verify_architecture . |
-            node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const r=JSON.parse(s);if(r.state!=='PASS'||r.new.length||r.existing.length||r.excepted.length){console.error(JSON.stringify(r,null,2));process.exit(1)}})"
+        run: cargo test --locked the_product_architecture_passes_its_internal_engine
       # server.json is what an MCP registry reads. It named the 0.1.x npm package long after this
       # became a Rust host, so the two are now checked against each other.
       - name: Verify the crate and the MCP manifest agree on the version
@@ -89,7 +86,7 @@ jobs:
           node scripts/build-npm-packages.mjs current linux-x64 target/release/weavatrix-refactor
           npm pack ./npm/dist/weavatrix-refactor --dry-run --json |
             node scripts/npm-pack-json.mjs require-files README.md LICENSE server.json bin/weavatrix-refactor.mjs bin/weavatrix-refactor-mcp.mjs
-          node --test scripts/npm-pack-json.test.mjs
+          node --test scripts/npm-pack-json.test.mjs scripts/plugin-manifests.test.mjs
       - name: Reject lifecycle scripts and runtime dependencies
         shell: bash
         run: |

@@ -3,7 +3,7 @@ mod write_gate;
 
 use std::env;
 use std::process::ExitCode;
-use weavatrix_rust::{Weavatrix, operations};
+use weavatrix_rust::Weavatrix;
 use weavatrix_rust_refactor::operations as refactor;
 use write_gate::WriteGate;
 
@@ -35,7 +35,7 @@ fn run(arguments: &[String]) -> Result<(), String> {
             Ok(())
         }
         Some("mcp") => serve_mcp(arguments),
-        Some("list-tools") => list_tools(),
+        Some("list-tools") => list_tools(arguments),
         Some("tool") => call_tool(arguments),
         _ => {
             print_help();
@@ -46,14 +46,11 @@ fn run(arguments: &[String]) -> Result<(), String> {
 
 fn serve_mcp(arguments: &[String]) -> Result<(), String> {
     let mut repository = ".";
-    let mut surface = mcp::ToolSurface::Full;
+    let mut surface = mcp::ToolSurface::default();
     for argument in arguments.iter().skip(1) {
         if let Some(profile) = argument.strip_prefix("--profile=") {
-            surface = match profile {
-                "full" => mcp::ToolSurface::Full,
-                "rename" => mcp::ToolSurface::Rename,
-                _ => return Err(format!("unknown MCP profile: {profile}")),
-            };
+            surface = mcp::ToolSurface::from_profile(profile)
+                .ok_or_else(|| format!("unknown MCP profile: {profile}"))?;
             continue;
         }
         if argument.starts_with('-') {
@@ -65,21 +62,19 @@ fn serve_mcp(arguments: &[String]) -> Result<(), String> {
         .map_err(|error| error.to_string())
 }
 
-fn list_tools() -> Result<(), String> {
-    let mut catalog = blazingly_json::to_value(operations::catalog_for_profile(
-        operations::ToolProfile::All,
-    ))
-    .map_err(|error| error.to_string())?
-    .as_array()
-    .cloned()
-    .unwrap_or_default();
-    if let Some(tools) = refactor::catalog().as_array() {
-        catalog.extend(tools.iter().cloned());
+fn list_tools(arguments: &[String]) -> Result<(), String> {
+    let mut surface = mcp::ToolSurface::default();
+    for argument in arguments.iter().skip(1) {
+        let Some(profile) = argument.strip_prefix("--profile=") else {
+            return Err(format!("unknown list-tools option: {argument}"));
+        };
+        surface = mcp::ToolSurface::from_profile(profile)
+            .ok_or_else(|| format!("unknown tool profile: {profile}"))?;
     }
+    let catalog = mcp::catalog_for_surface(surface).map_err(|error| error.to_string())?;
     println!(
         "{}",
-        blazingly_json::to_string_pretty(&blazingly_json::Value::Array(catalog))
-            .map_err(|error| error.to_string())?
+        blazingly_json::to_string_pretty(&catalog).map_err(|error| error.to_string())?
     );
     Ok(())
 }
@@ -101,16 +96,18 @@ fn call_tool(arguments: &[String]) -> Result<(), String> {
         )
         .map_err(|error| format!("invalid operation JSON: {error}"))?;
 
-    let mut engine = Weavatrix::open(repository).map_err(|error| error.to_string())?;
-    let output = if refactor::Operation::from_name(name).is_some() {
-        // The gate is passed into the session rather than checked beside it. Checking here and
-        // then handing the session a different answer is how a caller gets WRITE_GATE_CLOSED
-        // with the gate open.
-        let gate = WriteGate::from_environment();
-        refactor::RefactorSession::new(gate.is_open()).call(engine.state(), name, &input)?
-    } else {
-        operations::call(&mut engine, name, input)?
-    };
+    let engine = Weavatrix::open(repository).map_err(|error| error.to_string())?;
+    if refactor::Operation::from_name(name).is_none() {
+        return Err(format!(
+            "tool `{name}` is not part of the Weavatrix Refactor extension"
+        ));
+    }
+    // The gate is passed into the session rather than checked beside it. Checking here and
+    // then handing the session a different answer is how a caller gets WRITE_GATE_CLOSED
+    // with the gate open.
+    let gate = WriteGate::from_environment();
+    let output =
+        refactor::RefactorSession::new(gate.is_open()).call(engine.state(), name, &input)?;
     println!(
         "{}",
         blazingly_json::to_string_pretty(&output).map_err(|error| error.to_string())?
@@ -120,9 +117,9 @@ fn call_tool(arguments: &[String]) -> Result<(), String> {
 
 fn print_help() {
     println!(
-        "Weavatrix Refactor: repository intelligence with proven, transactional refactoring\n\n\
-Usage:\n  weavatrix-refactor mcp [REPOSITORY] [--profile=full|rename]\n\
-  weavatrix-refactor list-tools\n\
+        "Weavatrix Refactor: transactional refactoring backed by an internal repository graph\n\n\
+Usage:\n  weavatrix-refactor mcp [REPOSITORY] [--profile=refactor|rename]\n\
+  weavatrix-refactor list-tools [--profile=refactor|rename]\n\
   weavatrix-refactor tool NAME [REPOSITORY] ['{{\"argument\":\"value\"}}']\n\
   weavatrix-refactor --version\n\n\
 Source edits additionally require {}=1 and a plan-bound single-use token.",

@@ -1,9 +1,9 @@
 ﻿[package]
 name = "weavatrix-refactor"
-version = "1.0.6"
+version = "1.0.7"
 edition = "2024"
 rust-version = "1.89"
-description = "Native MCP server for Weavatrix refactoring: proven edit plans, transactional application, and rollback"
+description = "Native MCP refactoring extension: proven edit plans, transactional application, and rollback"
 license = "MIT"
 repository = "https://github.com/sergii-ziborov/weavatrix-refactor"
 homepage = "https://weavatrix.com"

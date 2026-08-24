@@ -4,61 +4,52 @@ use blazingly_json::Value;
 use std::collections::BTreeSet;
 use std::io;
 use std::path::{Path, PathBuf};
-use weavatrix_rust::{Error, Weavatrix, operations};
+use weavatrix_rust::{Error, Weavatrix};
 use weavatrix_rust_refactor::operations as refactor;
 
-/// The merged catalog: every read-only operation of the engine, plus the eleven refactor tools.
+/// Catalog builder for the 11-tool extension or the 2-tool rename workflow.
 ///
-/// The two halves are kept separable on purpose. A name that exists in both would make the
-/// dispatch below ambiguous, so the merge refuses it rather than silently preferring one.
+/// Refactor uses the read-only engine internally but never exports its methods.
 pub(crate) struct ToolCatalog {
     pub(crate) encoded: Value,
     pub(crate) names: BTreeSet<String>,
     pub(crate) refactor_names: BTreeSet<String>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub(crate) enum ToolSurface {
-    Full,
+    #[default]
+    Refactor,
     Rename,
 }
 
-impl ToolCatalog {
-    #[cfg(test)]
-    pub(crate) fn merged() -> io::Result<Self> {
-        Self::for_surface(ToolSurface::Full)
+impl ToolSurface {
+    pub(crate) fn from_profile(profile: &str) -> Option<Self> {
+        match profile {
+            "refactor" => Some(Self::Refactor),
+            "rename" => Some(Self::Rename),
+            _ => None,
+        }
     }
+}
 
+pub(crate) fn catalog_for_surface(surface: ToolSurface) -> io::Result<Value> {
+    ToolCatalog::for_surface(surface).map(|catalog| catalog.encoded)
+}
+
+impl ToolCatalog {
     pub(crate) fn for_surface(surface: ToolSurface) -> io::Result<Self> {
-        let read_only = match surface {
-            ToolSurface::Full => operations::catalog_for_profile(operations::ToolProfile::All),
-            ToolSurface::Rename => Vec::new(),
-        };
-        let mut names = read_only
-            .iter()
-            .map(|definition| definition.name.to_owned())
-            .collect::<BTreeSet<_>>();
-        let mut encoded = blazingly_json::to_value(read_only)
-            .map_err(io::Error::other)?
-            .as_array()
-            .cloned()
-            .unwrap_or_default();
-
         let all_refactor_names = refactor::catalog_names()
             .into_iter()
             .collect::<BTreeSet<_>>();
         let refactor_names = match surface {
-            ToolSurface::Full => all_refactor_names.clone(),
+            ToolSurface::Refactor => all_refactor_names.clone(),
             ToolSurface::Rename => ["rename_symbol", "rollback_last_apply"]
                 .into_iter()
                 .map(str::to_owned)
                 .collect(),
         };
-        if let Some(clash) = refactor_names.iter().find(|name| names.contains(*name)) {
-            return Err(io::Error::other(format!(
-                "tool {clash} is declared by both the read-only engine and the refactor contract"
-            )));
-        }
+        let mut encoded = Vec::new();
         if let Some(tools) = refactor::catalog().as_array() {
             encoded.extend(
                 tools
@@ -71,17 +62,14 @@ impl ToolCatalog {
                     .cloned(),
             );
         }
-        if !refactor_names.is_subset(&all_refactor_names)
-            || encoded.len() != names.len() + refactor_names.len()
-        {
+        if !refactor_names.is_subset(&all_refactor_names) || encoded.len() != refactor_names.len() {
             return Err(io::Error::other(
                 "requested tool surface is not present in the refactor contract",
             ));
         }
-        names.extend(refactor_names.iter().cloned());
         Ok(Self {
             encoded: Value::Array(encoded),
-            names,
+            names: refactor_names.clone(),
             refactor_names,
         })
     }
@@ -164,47 +152,81 @@ impl RepositoryPort for RefactorRepository {
                 .state();
             return self.session.call(state, name, &arguments);
         }
-        let engine = self.engine().map_err(|error| error.to_string())?;
-        let result = operations::call(engine, name, arguments);
-        if result.is_ok() && name == "open_repo" {
-            self.root = self
-                .engine()
-                .map_err(|error| error.to_string())?
-                .state()
-                .root()
-                .to_path_buf();
-        }
-        result
+        Err(format!(
+            "tool `{name}` is not part of the Weavatrix Refactor extension"
+        ))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{ToolCatalog, ToolSurface};
+    use blazingly_json::Value;
+    use weavatrix_rust::{Weavatrix, operations};
     use weavatrix_rust_refactor::operations as refactor;
 
     #[test]
-    fn the_merged_catalog_carries_both_halves_without_collision() {
-        let catalog = ToolCatalog::merged().expect("catalogs must merge");
+    fn the_product_architecture_passes_its_internal_engine() {
+        let mut engine = Weavatrix::open(env!("CARGO_MANIFEST_DIR")).expect("open repository");
+        let result = operations::call(
+            &mut engine,
+            "verify_architecture",
+            blazingly_json::json!({}),
+        )
+        .expect("verify architecture");
+        assert_eq!(result.get("state").and_then(Value::as_str), Some("PASS"));
+        for bucket in ["new", "existing", "excepted"] {
+            assert_eq!(
+                result.get(bucket).and_then(Value::as_array).map(Vec::len),
+                Some(0),
+                "{bucket} architecture violations"
+            );
+        }
+    }
+
+    #[test]
+    fn the_default_catalog_contains_only_the_refactor_contract() {
+        let catalog = ToolCatalog::for_surface(ToolSurface::Refactor).expect("refactor catalog");
         for name in refactor::catalog_names() {
             assert!(
                 catalog.names.contains(&name),
-                "{name} missing from the merged catalog"
+                "{name} missing from the refactor catalog"
             );
             assert!(catalog.refactor_names.contains(&name));
         }
-        assert!(
-            catalog.names.contains("graph_stats"),
-            "read-only tools must survive the merge"
-        );
+        assert!(!catalog.names.contains("graph_stats"));
         let encoded = catalog.encoded.as_array().expect("catalog is an array");
         assert_eq!(encoded.len(), catalog.names.len());
     }
 
     #[test]
     fn the_refactor_half_is_exactly_eleven_tools() {
-        let catalog = ToolCatalog::merged().expect("catalogs must merge");
+        let catalog = ToolCatalog::for_surface(ToolSurface::Refactor).expect("refactor catalog");
         assert_eq!(catalog.refactor_names.len(), 11);
+    }
+
+    #[test]
+    fn the_refactor_surface_exposes_only_the_eleven_extension_tools() {
+        let catalog = ToolCatalog::for_surface(ToolSurface::Refactor).expect("refactor catalog");
+        assert_eq!(catalog.names, catalog.refactor_names);
+        assert_eq!(catalog.names.len(), 11);
+        assert!(!catalog.names.contains("graph_stats"));
+        assert_eq!(catalog.encoded.as_array().map(Vec::len), Some(11));
+    }
+
+    #[test]
+    fn the_default_surface_is_the_refactor_extension() {
+        assert_eq!(ToolSurface::default(), ToolSurface::Refactor);
+        assert_eq!(ToolSurface::from_profile("full"), None);
+        assert_eq!(
+            ToolSurface::from_profile("refactor"),
+            Some(ToolSurface::Refactor)
+        );
+        assert_eq!(
+            ToolSurface::from_profile("rename"),
+            Some(ToolSurface::Rename)
+        );
+        assert_eq!(ToolSurface::from_profile("unknown"), None);
     }
 
     #[test]

@@ -1,8 +1,8 @@
 # weavatrix-refactor
 
-Transactional refactoring MCP for coding agents: 11 evidence-backed plan/apply
-tools, hash-bound previews, crash-recoverable writes, and rollback — plus the 43 read-only
-operations of the Weavatrix engine, in one process.
+Transactional refactoring MCP extension for coding agents: 11 evidence-backed
+plan/apply tools, hash-bound previews, crash-recoverable writes, and rollback.
+It uses the Rust Weavatrix graph internally without exporting Core methods.
 
 ```bash
 npx -y weavatrix-refactor mcp /absolute/path/to/repository
@@ -15,7 +15,20 @@ npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=rename
 ```
 
 That profile exposes only `rename_symbol` and `rollback_last_apply`. The default
-`--profile=full` surface remains available for discovery and other refactors.
+`--profile=refactor` surface exposes all 11 Refactor methods.
+
+When a separate Weavatrix Core server already supplies the 43 read-only tools,
+load only the 11 Refactor extensions:
+
+```bash
+npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=refactor
+```
+
+The official Cursor, Codex, Claude Code, and Grok Build plugin bundle uses this
+extension-only profile to avoid duplicate MCP definitions.
+
+Core methods cannot be called through this package. Use the separate Weavatrix
+product for read-only repository intelligence.
 
 This package ships the native Rust binary. Nothing is compiled at install time,
 there are no lifecycle scripts, and no runtime dependencies.

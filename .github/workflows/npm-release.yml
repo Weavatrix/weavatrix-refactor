@@ -142,7 +142,7 @@ jobs:
           node -e "const p=require('./npm/dist/weavatrix-refactor/package.json');if(p.scripts||p.dependencies||p.optionalDependencies)process.exit(1)"
           ! find npm/dist/weavatrix-refactor -type f -path '*node_modules*' -print -quit | grep .
       # Installing the tarball is the only check that covers what a user actually gets: the bin
-      # shims, the bundled binary lookup, and both halves of the catalog in one process.
+      # shims, bundled binary lookup, and the extension-only catalog in one process.
       - name: Smoke-test the installed package boundary
         shell: bash
         run: |
@@ -158,11 +158,16 @@ jobs:
           [[ "$("$ROOT/node_modules/.bin/weavatrix-refactor" --version)" \
              == "weavatrix-refactor $VERSION (engine $ENGINE_VERSION, refactor $REFACTOR_VERSION, contract v$CONTRACT_VERSION)" ]]
           CATALOG="$("$ROOT/node_modules/.bin/weavatrix-refactor" list-tools)"
-          for tool in graph_stats rename_symbol rename_related_symbols change_signature organize_imports \
+          for tool in rename_symbol rename_related_symbols change_signature organize_imports \
                       edit_symbol bulk_replace move_file move_symbol delete_readiness \
                       apply_edit_plan rollback_last_apply; do
             grep -qF "\"$tool\"" <<<"$CATALOG" || { echo "$tool is missing from the catalog" >&2; exit 1; }
           done
+          ! grep -qF '"graph_stats"' <<<"$CATALOG" || { echo "default catalog leaks Core tools" >&2; exit 1; }
+          if "$ROOT/node_modules/.bin/weavatrix-refactor" list-tools --profile=full >/dev/null 2>&1; then
+            echo "removed full profile is still callable" >&2
+            exit 1
+          fi
       - name: Publish with provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

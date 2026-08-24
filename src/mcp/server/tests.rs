@@ -38,15 +38,15 @@ fn status_of(reply: &ToolReply) -> String {
 }
 
 #[test]
-fn the_catalog_exposes_the_read_only_engine_and_all_eleven_refactor_tools() {
+fn the_default_catalog_exposes_only_all_eleven_refactor_tools() {
     let mut server = RefactorServer::new(fixture(), WriteGate::closed()).expect("server");
     let catalog = server.catalog();
     let tools = catalog.as_array().expect("catalog is an array");
-    assert!(tools.len() > 11, "the read-only half must be present too");
+    assert_eq!(tools.len(), 11);
     for name in weavatrix_rust_refactor::operations::catalog_names() {
         assert_eq!(server.has_tool(&name), Some(true), "{name} is not exposed");
     }
-    assert_eq!(server.has_tool("graph_stats"), Some(true));
+    assert_eq!(server.has_tool("graph_stats"), Some(false));
     assert_eq!(server.has_tool("reformat_universe"), Some(false));
 }
 
@@ -73,6 +73,30 @@ fn the_rename_profile_hides_every_unrelated_tool() {
     let instructions = server.identity().instructions;
     assert!(instructions.contains("Start with the bare symbol name"));
     assert!(instructions.contains("Do not invent a symbol id"));
+}
+
+#[test]
+fn the_refactor_profile_hides_core_tools_without_losing_refactor_capabilities() {
+    let mut server =
+        RefactorServer::new_for_surface(fixture(), WriteGate::closed(), ToolSurface::Refactor)
+            .expect("server");
+    let names = server
+        .catalog()
+        .as_array()
+        .expect("catalog is an array")
+        .iter()
+        .filter_map(|tool| {
+            tool.get("name")
+                .and_then(blazingly_json::Value::as_str)
+                .map(str::to_owned)
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(names.len(), 11);
+    assert_eq!(server.has_tool("graph_stats"), Some(false));
+    for name in weavatrix_rust_refactor::operations::catalog_names() {
+        assert_eq!(server.has_tool(&name), Some(true), "{name} is not exposed");
+    }
+    assert!(server.identity().instructions.contains("extension only"));
 }
 
 #[test]

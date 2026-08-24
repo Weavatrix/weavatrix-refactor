@@ -6,12 +6,9 @@ use mcport::{ServerIdentity, ToolPayload, ToolReply, ToolServer, Value};
 use std::path::Path;
 use std::sync::Arc;
 
-/// The refactor tool surface behind the shared `mcport` stdio runtime.
+/// The selected Refactor tool surface behind the shared `mcport` stdio runtime.
 ///
-/// One process answers both halves: every read-only operation of the engine and the eleven
-/// refactor tools. That is the point of merging them here rather than proxying a second server —
-/// a refactor session stays in one evidence chain, on one graph revision, without a second
-/// process to keep in step.
+/// Refactor exports only its own methods while using the Rust graph internally.
 struct RefactorServer {
     identity: ServerIdentity,
     catalog: Value,
@@ -22,7 +19,7 @@ struct RefactorServer {
 impl RefactorServer {
     #[cfg(test)]
     fn new(root: impl AsRef<Path>, gate: WriteGate) -> Result<Self, McpError> {
-        Self::new_for_surface(root, gate, ToolSurface::Full)
+        Self::new_for_surface(root, gate, ToolSurface::Refactor)
     }
 
     fn new_for_surface(
@@ -32,9 +29,10 @@ impl RefactorServer {
     ) -> Result<Self, McpError> {
         let catalog = ToolCatalog::for_surface(surface)?;
         let instructions = match surface {
-            ToolSurface::Full => {
-                "Local repository intelligence with proven refactoring. Writes require an explicit \
-                 gate and a plan-bound single-use token."
+            ToolSurface::Refactor => {
+                "Refactor extension only: eleven evidence-backed planning, preview, apply, and \
+                 rollback tools. Use the separate Weavatrix core server for read-only repository \
+                 intelligence. Writes require an explicit gate and a plan-bound single-use token."
             }
             ToolSurface::Rename => {
                 "Rename-only workflow. Start with the bare symbol name; if it is ambiguous, retry \
@@ -105,7 +103,7 @@ impl ToolServer for RefactorServer {
     }
 }
 
-/// Serves the merged read-only and refactor surface over one stdio runtime.
+/// Serves the selected refactor or rename surface over stdio.
 ///
 /// The repository root and graph are validated eagerly so misconfiguration fails before the
 /// protocol handshake, and the write gate is read once at startup rather than per call.

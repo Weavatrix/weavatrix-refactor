@@ -41,16 +41,52 @@ An MCP client can start it directly:
 Leave `WEAVATRIX_ALLOW_SOURCE_EDITS` unset for preview-only sessions. Preview is a read; only a
 confirmed apply or rollback requires the gate.
 
+### Install as a plugin
+
+The repository also ships one plugin bundle for Cursor, Codex, Claude Code,
+and Grok Build. The plugin starts the extension-only profile, so it contributes
+the 11 Refactor methods without repeating Weavatrix Core's 43 read-only method
+definitions. Install the separate Weavatrix plugin when both surfaces are
+needed.
+
+The bundled skill is optional and activates only for explicitly requested
+refactoring work. Its entry point stays short; each method has an individual
+reference card that is loaded only when needed.
+
+- Cursor: search for **Weavatrix Refactor** after marketplace approval.
+- Codex: add the `sergii-ziborov/weavatrix-refactor` marketplace from
+  `.agents/plugins`, then add `weavatrix-refactor@weavatrix-refactor`.
+- Claude Code: add the same repository marketplace from `.claude-plugin`, then
+  install `weavatrix-refactor@weavatrix-refactor`.
+- Grok Build: run `grok plugin marketplace add
+  sergii-ziborov/weavatrix-refactor`, open `/marketplace`, and install it.
+
+The plugin opens `WEAVATRIX_ALLOW_SOURCE_EDITS=1`, but every write still needs
+the exact preview's short-lived, plan-bound single-use token.
+
 For a rename task, expose only the two tools the agent needs:
 
 ```bash
 weavatrix-refactor mcp /absolute/path/to/repository --profile=rename
 ```
 
-The `rename` profile keeps `rename_symbol` and `rollback_last_apply`; every unrelated graph and
-refactor tool is absent and cannot be called. Omit the option (or use `--profile=full`) for the
-complete repository-intelligence surface. The narrower catalog reduces repeated agent context;
-it does not weaken preview hashes, the write gate, the confirmation token, or rollback checks.
+The `rename` profile keeps `rename_symbol` and `rollback_last_apply`; every
+unrelated graph and refactor tool is absent and cannot be called. Omit the
+option (or use `--profile=refactor`) for all 11 Refactor methods. The narrower
+catalog reduces repeated agent context; it does not weaken preview hashes, the
+write gate, the confirmation token, or rollback checks.
+
+When Weavatrix Core is already installed as a separate MCP, expose only the 11
+methods that Refactor adds:
+
+```bash
+weavatrix-refactor mcp /absolute/path/to/repository --profile=refactor
+```
+
+The `refactor` profile is the default for MCP and `list-tools`, including the
+marketplace plugin. The explicit `full` compatibility profile remains
+available when one process and one graph revision are more important than
+avoiding duplicate Core tool definitions.
 
 ## A safe cross-file rename in three calls
 
@@ -122,8 +158,10 @@ The eleven tools do not all claim the same level of automation:
 | Advisory | `move_symbol`, `delete_readiness` | Blast radius, cycle/architecture risks, or a deletion verdict; no automatic source write |
 | Safety infrastructure | `apply_edit_plan`, `rollback_last_apply` | Verification/application of an edit-plan envelope and drift-safe restoration |
 
-The same process also exposes the read-only Weavatrix repository tools, so discovery, impact
-analysis, planning, and application share one graph revision and one session.
+Refactor uses the Rust Weavatrix graph internally for evidence but never
+exports Core methods. Install the separate Weavatrix plugin for read-only
+repository intelligence. The Refactor MCP owns exactly its 11 extension
+methods; `--profile=rename` is an optional narrower two-method workflow.
 
 ## Safety model and exact limits
 
@@ -173,10 +211,12 @@ See the [full methodology, all language medians, raw-result links, and limitatio
 
 ## Contract
 
-The tool names, schemas, and result states are frozen in
+The 11 Refactor tool names, schemas, and result states are frozen in
 [`contract/refactor-tools.v1.json`](contract/refactor-tools.v1.json). All refactor operations are
-native Rust; the host merges them with the read-only
-[`weavatrix-rust`](https://github.com/sergii-ziborov/weavatrix-rust) engine.
+native Rust; the host uses the read-only
+[`weavatrix-rust`](https://github.com/sergii-ziborov/weavatrix-rust) engine
+internally for graph evidence without exporting its methods on the default
+surface.
 
 Versions 0.1.x used the JavaScript engine. That line continues as
 [`weavatrix-refactor-js`](https://github.com/sergii-ziborov/weavatrix-refactor-js) and keeps a

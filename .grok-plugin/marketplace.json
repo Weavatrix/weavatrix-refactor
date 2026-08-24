@@ -1,0 +1,30 @@
+{
+  "name": "weavatrix-refactor",
+  "description": "Official Weavatrix Refactor plugins for Grok Build.",
+  "owner": {
+    "name": "Sergii Ziborov",
+    "email": "sergii.ziborov@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "weavatrix-refactor",
+      "description": "Evidence-backed transactional refactoring with preview, confirmation, and rollback.",
+      "category": "development",
+      "source": {
+        "type": "local",
+        "path": "./plugins/weavatrix-refactor"
+      },
+      "version": "1.0.7",
+      "author": {
+        "name": "Sergii Ziborov"
+      },
+      "homepage": "https://weavatrix.com",
+      "keywords": [
+        "weavatrix refactor",
+        "weavatrix transactional refactoring",
+        "weavatrix rename"
+      ],
+      "domains": ["weavatrix.com"]
+    }
+  ]
+}

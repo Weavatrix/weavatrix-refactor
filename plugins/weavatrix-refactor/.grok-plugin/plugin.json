@@ -1,0 +1,18 @@
+{
+  "name": "weavatrix-refactor",
+  "version": "1.0.7",
+  "description": "Evidence-backed transactional refactoring with preview, confirmation, and rollback.",
+  "author": {
+    "name": "Sergii Ziborov",
+    "email": "sergii.ziborov@gmail.com",
+    "url": "https://github.com/sergii-ziborov"
+  },
+  "homepage": "https://weavatrix.com",
+  "repository": "https://github.com/sergii-ziborov/weavatrix-refactor",
+  "license": "MIT",
+  "keywords": [
+    "weavatrix refactor",
+    "weavatrix transactional refactoring",
+    "weavatrix rename"
+  ]
+}

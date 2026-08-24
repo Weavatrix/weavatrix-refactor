@@ -1,0 +1,38 @@
+{
+  "name": "weavatrix-refactor",
+  "version": "1.0.7",
+  "description": "Evidence-backed transactional refactoring with preview, confirmation, and rollback.",
+  "author": {
+    "name": "Sergii Ziborov",
+    "email": "sergii.ziborov@gmail.com",
+    "url": "https://github.com/sergii-ziborov"
+  },
+  "homepage": "https://weavatrix.com",
+  "repository": "https://github.com/sergii-ziborov/weavatrix-refactor",
+  "license": "MIT",
+  "keywords": [
+    "weavatrix",
+    "refactoring",
+    "transactional-edits",
+    "rename-symbol"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Weavatrix Refactor",
+    "shortDescription": "Proven refactoring with guarded writes and rollback",
+    "longDescription": "Preview evidence-backed refactors, review exact edits and uncertainty, apply with a plan-bound single-use token, and roll back without loading Weavatrix core tools twice.",
+    "developerName": "Sergii Ziborov",
+    "category": "Infrastructure",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://weavatrix.com",
+    "defaultPrompt": [
+      "Safely rename this symbol across the repository.",
+      "Preview an exact refactor plan for these changes.",
+      "Check whether this symbol is ready to delete."
+    ],
+    "brandColor": "#F59E0B",
+    "composerIcon": "./assets/logo.svg",
+    "logo": "./assets/logo.svg"
+  }
+}

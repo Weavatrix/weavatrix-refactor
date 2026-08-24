@@ -1,0 +1,20 @@
+{
+  "name": "weavatrix-refactor",
+  "interface": {
+    "displayName": "Weavatrix Refactor"
+  },
+  "plugins": [
+    {
+      "name": "weavatrix-refactor",
+      "source": {
+        "source": "local",
+        "path": "./plugins/weavatrix-refactor"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Infrastructure"
+    }
+  ]
+}
