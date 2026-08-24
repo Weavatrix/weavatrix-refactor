@@ -84,9 +84,10 @@ weavatrix-refactor mcp /absolute/path/to/repository --profile=refactor
 ```
 
 The `refactor` profile is the default for MCP and `list-tools`, including the
-marketplace plugin. The explicit `full` compatibility profile remains
-available when one process and one graph revision are more important than
-avoiding duplicate Core tool definitions.
+marketplace plugin. The former `full` compatibility profile has been removed
+and is rejected by both commands: Refactor no longer republishes Core methods.
+Install Weavatrix Core as its own MCP when read-only repository intelligence is
+also needed.
 
 ## A safe cross-file rename in three calls
 

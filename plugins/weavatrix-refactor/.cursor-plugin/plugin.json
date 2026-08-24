@@ -1,6 +1,6 @@
 {
   "name": "weavatrix-refactor",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Evidence-backed transactional refactoring with preview, confirmation, and rollback.",
   "author": {
     "name": "Sergii Ziborov",
