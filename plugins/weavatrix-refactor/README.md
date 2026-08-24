@@ -53,5 +53,5 @@ Open `/marketplace` and install Weavatrix Refactor.
 ## Source and support
 
 - Website: https://weavatrix.com
-- Repository: https://github.com/sergii-ziborov/weavatrix-refactor
-- Issues: https://github.com/sergii-ziborov/weavatrix-refactor/issues
+- Repository: https://github.com/Weavatrix/weavatrix-refactor
+- Issues: https://github.com/Weavatrix/weavatrix-refactor/issues

@@ -1,5 +1,13 @@
 # Weavatrix Refactor
 
+[![CI](https://github.com/Weavatrix/weavatrix-refactor/actions/workflows/ci.yml/badge.svg)](https://github.com/Weavatrix/weavatrix-refactor/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/weavatrix-refactor.svg)](https://www.npmjs.com/package/weavatrix-refactor)
+[![crates.io](https://img.shields.io/crates/v/weavatrix-refactor.svg)](https://crates.io/crates/weavatrix-refactor)
+[![docs.rs](https://docs.rs/weavatrix-refactor/badge.svg)](https://docs.rs/weavatrix-refactor)
+[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+The explicit source-write layer of the [Weavatrix ecosystem](https://weavatrix.com/ecosystem); Core remains read-only.
+
 **Refactor across files without letting the agent guess.**
 
 Weavatrix Refactor is a native MCP server for coding agents. It finds a symbol through the
@@ -215,12 +223,12 @@ See the [full methodology, all language medians, raw-result links, and limitatio
 The 11 Refactor tool names, schemas, and result states are frozen in
 [`contract/refactor-tools.v1.json`](contract/refactor-tools.v1.json). All refactor operations are
 native Rust; the host uses the read-only
-[`weavatrix-rust`](https://github.com/sergii-ziborov/weavatrix-rust) engine
+[`weavatrix-rust`](https://github.com/Weavatrix/weavatrix-rust) engine
 internally for graph evidence without exporting its methods on the default
 surface.
 
 Versions 0.1.x used the JavaScript engine. That line continues as
-[`weavatrix-refactor-js`](https://github.com/sergii-ziborov/weavatrix-refactor-js) and keeps a
+[`weavatrix-refactor-js`](https://github.com/Weavatrix/weavatrix-refactor-js) and keeps a
 separate state directory, token store, and rollback journal.
 
 ## License

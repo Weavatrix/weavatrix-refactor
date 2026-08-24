@@ -27,7 +27,7 @@ test('plugin identity follows the released Refactor host', () => {
     for (const [client, manifest] of Object.entries(manifests)) {
         assert.equal(manifest.name, 'weavatrix-refactor', `${client} plugin name`)
         assert.equal(manifest.version, version, `${client} plugin version`)
-        assert.equal(manifest.repository, 'https://github.com/sergii-ziborov/weavatrix-refactor')
+        assert.equal(manifest.repository, 'https://github.com/Weavatrix/weavatrix-refactor')
         assert.equal(manifest.license, 'MIT')
     }
 })

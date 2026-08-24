@@ -9,10 +9,10 @@
   "homepage": "https://weavatrix.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sergii-ziborov/weavatrix-refactor.git"
+    "url": "git+https://github.com/Weavatrix/weavatrix-refactor.git"
   },
   "bugs": {
-    "url": "https://github.com/sergii-ziborov/weavatrix-refactor/issues"
+    "url": "https://github.com/Weavatrix/weavatrix-refactor/issues"
   },
   "mcpName": "io.github.sergii-ziborov/weavatrix-refactor",
   "type": "module",

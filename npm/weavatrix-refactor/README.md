@@ -46,6 +46,6 @@ does not grant write authority.
 > token store, or a rollback journal.
 
 Full documentation:
-[github.com/sergii-ziborov/weavatrix-refactor](https://github.com/sergii-ziborov/weavatrix-refactor)
+[github.com/Weavatrix/weavatrix-refactor](https://github.com/Weavatrix/weavatrix-refactor)
 
 MIT.

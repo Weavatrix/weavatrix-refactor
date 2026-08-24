@@ -2,5 +2,5 @@ weavatrix-refactor
 Copyright 2026 Sergii Ziborov
 
 This product depends on the MIT-licensed weavatrix-js package
-(https://github.com/sergii-ziborov/weavatrix-js) and extends it through
+(https://github.com/Weavatrix/weavatrix-js) and extends it through
 its supported extension API. It does not copy or relicense dependency code.

@@ -1,17 +1,18 @@
 {
   "name": "weavatrix-refactor",
   "version": "1.0.8",
-  "description": "Evidence-backed transactional refactoring with preview, confirmation, and rollback.",
+  "description": "Safe action infrastructure for AI software agents: 11 evidence-backed refactor methods with exact previews, guarded writes, and rollback.",
   "author": {
-    "name": "Sergii Ziborov",
+    "name": "Weavatrix",
     "email": "sergii.ziborov@gmail.com",
-    "url": "https://github.com/sergii-ziborov"
+    "url": "https://github.com/Weavatrix"
   },
   "homepage": "https://weavatrix.com",
-  "repository": "https://github.com/sergii-ziborov/weavatrix-refactor",
+  "repository": "https://github.com/Weavatrix/weavatrix-refactor",
   "license": "MIT",
   "keywords": [
     "weavatrix",
+    "ai-agents",
     "refactoring",
     "transactional-edits",
     "rename-symbol"
