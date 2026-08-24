@@ -1,7 +1,7 @@
 {
   "name": "weavatrix-refactor",
   "version": "1.0.9",
-  "weavatrixEngineVersion": "2.5.1",
+  "weavatrixEngineVersion": "2.7.3",
   "weavatrixRefactorVersion": "0.1.6",
   "description": "Transactional MCP refactoring extension: evidence-backed plans, hash-bound previews, crash-recoverable writes, and rollback.",
   "author": "Sergii Ziborov <sergii.ziborov@gmail.com>",
