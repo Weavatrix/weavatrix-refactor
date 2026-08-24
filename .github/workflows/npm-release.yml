@@ -183,8 +183,8 @@ jobs:
 
           PUBLISHED_HEAD=""
           PREDICATE=""
-          for attempt in $(seq 1 24); do
-            echo "npm provenance verification attempt $attempt/24"
+          for attempt in $(seq 1 180); do
+            echo "npm provenance verification attempt $attempt/180"
             PUBLISHED_HEAD="$(npm view "weavatrix-refactor@$VERSION" gitHead --json 2>/dev/null | tr -d '\"\r\n' || true)"
             PREDICATE="$(npm view "weavatrix-refactor@$VERSION" dist.attestations.provenance.predicateType --json 2>/dev/null | tr -d '\"\r\n' || true)"
             if [[ "$PUBLISHED_HEAD" == "$GITHUB_SHA" && "$PREDICATE" == "https://slsa.dev/provenance/v1" ]]; then
@@ -224,8 +224,8 @@ jobs:
           set -euo pipefail
           VERSION="$(node -p "require('./npm/weavatrix-refactor/package.json').version")"
           REGISTRY_URL="https://registry.modelcontextprotocol.io/v0.1/servers/io.github.sergii-ziborov%2Fweavatrix-refactor/versions/$VERSION"
-          for attempt in $(seq 1 24); do
-            echo "MCP Registry verification attempt $attempt/24"
+          for attempt in $(seq 1 180); do
+            echo "MCP Registry verification attempt $attempt/180"
             if curl --fail --silent --show-error "$REGISTRY_URL" |
               jq --exit-status --arg version "$VERSION" \
                 '.server.name == "io.github.sergii-ziborov/weavatrix-refactor" and
