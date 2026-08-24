@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "Evidence-backed transactional refactoring for coding agents",
-    "version": "1.0.9"
+    "version": "1.0.10"
   },
   "plugins": [
     {
       "name": "weavatrix-refactor",
       "source": "./plugins/weavatrix-refactor",
-      "version": "1.0.9",
+      "version": "1.0.10",
       "description": "Evidence-backed transactional refactoring with preview, confirmation, and rollback.",
       "author": {
         "name": "Sergii Ziborov"
