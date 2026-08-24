@@ -128,7 +128,7 @@ jobs:
           SERVER_PACKAGE_VERSION="$(node -p "require('./server.json').packages[0].version")"
           SERVER_COMMAND="$(node -p "require('./server.json').packages[0].packageArguments[0].value")"
           [[ "$GITHUB_REF_NAME" == "v$VERSION" ]]
-          [[ "$SERVER_NAME" == "io.github.weavatrix/weavatrix-refactor" ]]
+          [[ "$SERVER_NAME" == "io.github.Weavatrix/weavatrix-refactor" ]]
           [[ "$MCP_NAME" == "$SERVER_NAME" ]]
           [[ "$SERVER_VERSION" == "$VERSION" ]]
           [[ "$SERVER_PACKAGE" == "weavatrix-refactor" ]]
@@ -209,9 +209,9 @@ jobs:
           set -euo pipefail
           VERSION="$(node -p "require('./npm/weavatrix-refactor/package.json').version")"
           ./mcp-publisher validate server.json
-          REGISTRY_RESPONSE="$(curl --fail --silent --show-error 'https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.weavatrix%2Fweavatrix-refactor')"
+          REGISTRY_RESPONSE="$(curl --fail --silent --show-error 'https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.Weavatrix%2Fweavatrix-refactor')"
           if jq --exit-status --arg version "$VERSION" \
-            '.servers[]?.server | select(.name == "io.github.weavatrix/weavatrix-refactor" and .version == $version)' \
+            '.servers[]?.server | select(.name == "io.github.Weavatrix/weavatrix-refactor" and .version == $version)' \
             <<<"$REGISTRY_RESPONSE" >/dev/null; then
             echo "MCP Registry already contains Weavatrix Refactor $VERSION; skipping publish"
           else
@@ -223,12 +223,12 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(node -p "require('./npm/weavatrix-refactor/package.json').version")"
-          REGISTRY_URL="https://registry.modelcontextprotocol.io/v0.1/servers/io.github.weavatrix%2Fweavatrix-refactor/versions/$VERSION"
+          REGISTRY_URL="https://registry.modelcontextprotocol.io/v0.1/servers/io.github.Weavatrix%2Fweavatrix-refactor/versions/$VERSION"
           for attempt in $(seq 1 180); do
             echo "MCP Registry verification attempt $attempt/180"
             if curl --fail --silent --show-error "$REGISTRY_URL" |
               jq --exit-status --arg version "$VERSION" \
-                '.server.name == "io.github.weavatrix/weavatrix-refactor" and
+                '.server.name == "io.github.Weavatrix/weavatrix-refactor" and
                  .server.version == $version and
                  .server.packages[0].identifier == "weavatrix-refactor" and
                  .server.packages[0].version == $version' >/dev/null; then
@@ -238,7 +238,7 @@ jobs:
           done
           curl --fail --silent --show-error "$REGISTRY_URL" |
             jq --exit-status --arg version "$VERSION" \
-              '.server.name == "io.github.weavatrix/weavatrix-refactor" and
+              '.server.name == "io.github.Weavatrix/weavatrix-refactor" and
                .server.version == $version and
                .server.packages[0].identifier == "weavatrix-refactor" and
                .server.packages[0].version == $version' >/dev/null

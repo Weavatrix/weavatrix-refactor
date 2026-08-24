@@ -1,6 +1,6 @@
 {
   "name": "weavatrix-refactor",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "weavatrixEngineVersion": "2.7.3",
   "weavatrixRefactorVersion": "0.1.6",
   "description": "Transactional MCP refactoring extension: evidence-backed plans, hash-bound previews, crash-recoverable writes, and rollback.",
@@ -14,7 +14,7 @@
   "bugs": {
     "url": "https://github.com/Weavatrix/weavatrix-refactor/issues"
   },
-  "mcpName": "io.github.weavatrix/weavatrix-refactor",
+  "mcpName": "io.github.Weavatrix/weavatrix-refactor",
   "type": "module",
   "engines": {
     "node": ">=18"
