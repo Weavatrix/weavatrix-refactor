@@ -62,12 +62,12 @@ refactoring work. Its entry point stays short; each method has an individual
 reference card that is loaded only when needed.
 
 - Cursor: search for **Weavatrix Refactor** after marketplace approval.
-- Codex: add the `sergii-ziborov/weavatrix-refactor` marketplace from
+- Codex: add the `Weavatrix/weavatrix-refactor` marketplace from
   `.agents/plugins`, then add `weavatrix-refactor@weavatrix-refactor`.
 - Claude Code: add the same repository marketplace from `.claude-plugin`, then
   install `weavatrix-refactor@weavatrix-refactor`.
 - Grok Build: run `grok plugin marketplace add
-  sergii-ziborov/weavatrix-refactor`, open `/marketplace`, and install it.
+  Weavatrix/weavatrix-refactor`, open `/marketplace`, and install it.
 
 The plugin opens `WEAVATRIX_ALLOW_SOURCE_EDITS=1`, but every write still needs
 the exact preview's short-lived, plan-bound single-use token.

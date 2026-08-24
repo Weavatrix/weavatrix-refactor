@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.sergii-ziborov/weavatrix-refactor",
+  "name": "io.github.weavatrix/weavatrix-refactor",
   "description": "Transactional refactoring extension with 11 evidence-backed tools, previews, and rollback.",
   "repository": {"url": "https://github.com/Weavatrix/weavatrix-refactor", "source": "github"},
   "version": "1.0.9",

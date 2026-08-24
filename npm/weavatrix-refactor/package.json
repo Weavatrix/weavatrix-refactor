@@ -14,7 +14,7 @@
   "bugs": {
     "url": "https://github.com/Weavatrix/weavatrix-refactor/issues"
   },
-  "mcpName": "io.github.sergii-ziborov/weavatrix-refactor",
+  "mcpName": "io.github.weavatrix/weavatrix-refactor",
   "type": "module",
   "engines": {
     "node": ">=18"

@@ -31,21 +31,21 @@ approval. For local testing, copy or link this directory to
 ### Codex
 
 ```text
-codex plugin marketplace add sergii-ziborov/weavatrix-refactor --sparse .agents/plugins plugins/weavatrix-refactor
+codex plugin marketplace add Weavatrix/weavatrix-refactor --sparse .agents/plugins plugins/weavatrix-refactor
 codex plugin add weavatrix-refactor@weavatrix-refactor
 ```
 
 ### Claude Code
 
 ```text
-claude plugin marketplace add sergii-ziborov/weavatrix-refactor --sparse .claude-plugin plugins
+claude plugin marketplace add Weavatrix/weavatrix-refactor --sparse .claude-plugin plugins
 claude plugin install weavatrix-refactor@weavatrix-refactor
 ```
 
 ### Grok Build
 
 ```text
-grok plugin marketplace add sergii-ziborov/weavatrix-refactor
+grok plugin marketplace add Weavatrix/weavatrix-refactor
 ```
 
 Open `/marketplace` and install Weavatrix Refactor.
