@@ -6,7 +6,7 @@ on:
       - "v*"
 
 concurrency:
-  group: npm-release-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -169,8 +169,8 @@ jobs:
             exit 1
           fi
       - name: Publish with provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # Auth is npm trusted publishing (OIDC): the registry trusts this
+        # repository and workflow file directly, so no token is configured.
         shell: bash
         run: |
           set -euo pipefail
