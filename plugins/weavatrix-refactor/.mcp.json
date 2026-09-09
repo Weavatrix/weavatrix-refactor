@@ -7,7 +7,7 @@
         "-y",
         "weavatrix-refactor@1.0.11",
         "mcp",
-        ".",
+        "${workspaceFolder}",
         "--profile=refactor"
       ],
       "env": {

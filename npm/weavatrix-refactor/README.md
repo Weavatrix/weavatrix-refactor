@@ -25,7 +25,8 @@ npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=refactor
 ```
 
 The official Cursor, Codex, Claude Code, and Grok Build plugin bundle uses this
-extension-only profile to avoid duplicate MCP definitions.
+extension-only profile to avoid duplicate MCP definitions. Plugin MCP args use
+`${workspaceFolder}` (not `.`) so writes stay on the open workspace root.
 
 Core methods cannot be called through this package. Use the separate Weavatrix
 product for read-only repository intelligence.

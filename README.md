@@ -32,14 +32,15 @@ cargo install weavatrix-refactor --locked
 weavatrix-refactor mcp /absolute/path/to/repository
 ```
 
-An MCP client can start it directly:
+An MCP client can start it directly. Prefer an absolute path, or Cursor's
+`${workspaceFolder}` so the write server never follows the host process cwd:
 
 ```json
 {
   "mcpServers": {
     "weavatrix-refactor": {
-      "command": "weavatrix-refactor",
-      "args": ["mcp", "/absolute/path/to/repository"],
+      "command": "npx",
+      "args": ["-y", "weavatrix-refactor@1.0.11", "mcp", "${workspaceFolder}", "--profile=refactor"],
       "env": {"WEAVATRIX_ALLOW_SOURCE_EDITS": "1"}
     }
   }
@@ -47,7 +48,9 @@ An MCP client can start it directly:
 ```
 
 Leave `WEAVATRIX_ALLOW_SOURCE_EDITS` unset for preview-only sessions. Preview is a read; only a
-confirmed apply or rollback requires the gate.
+confirmed apply or rollback requires the gate. Refactor does not expose Core's
+`open_repo`, so it cannot silently retarget mid-session; the launch root is the
+only repository it will edit.
 
 ### Install as a plugin
 
