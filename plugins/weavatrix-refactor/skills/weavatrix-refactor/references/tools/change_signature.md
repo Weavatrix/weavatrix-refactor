@@ -4,7 +4,7 @@ Use for adding or removing a parameter in any indexed language. A typed language
 
 ## Boundary
 
-The declaration is edited in every indexed language. With a default, existing calls stay. Without one, those calls are listed and left unchanged unless a call-site value is given. The result stays `PARTIAL` when a site is uncertain. Spread and value-add sites remain uncertain.
+The declaration is edited in every indexed language, including Kotlin, which is read with the Java tokenizer. With a default, existing calls stay. Without one, those calls are listed and left unchanged unless a call-site value is given. A call the graph missed is edited only when the name is declared once and its argument list can be read; otherwise it is listed. The result stays `PARTIAL`. Spread calls stay uncertain.
 
 ## Inputs
 

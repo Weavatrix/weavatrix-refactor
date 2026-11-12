@@ -4,7 +4,7 @@ Use for a source-range anchored replace-body, insert-before, or insert-after edi
 
 ## Boundary
 
-The declaration end is the matching brace, the indent block, or the signature line. The plan warns that syntax was not checked. An unclosed body stops at the signature instead of consuming the next function.
+The declaration end is the matching brace, the indent block, or the signature line. A signature-line end is `PARTIAL` and warns `DECLARATION_END_UNPROVEN`. The plan warns that syntax was not checked. An unclosed body stops at the signature instead of consuming the next function.
 
 ## Inputs
 

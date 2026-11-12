@@ -47,12 +47,17 @@ does not grant write authority.
 `delete_closure` plans a symbol, an endpoint, or a file. A repository returns
 `BLOCKED`. A symbol with no source span returns `NOT_A_SYMBOL`. A uniquely
 named handler in another file is part of the route. `organize_imports` removes
-an unused Rust snake_case `use`, a Python `from` import or alias, and a Go path
-segment; a trait import, a bare Python import, and a Go blank import stay.
-`bulk_replace` matches code, and includes comments and strings only with
-`include_trivia`. `change_signature` works in every
-indexed language. `move_file` renames the file and rewrites relative specifiers;
-a missing parent directory is created at apply and left in place on rollback.
+an unused Rust snake_case `use`, a Python `from` import, a Go path segment, a
+Java import, a C# `using`, a C++ `using` name, and a Kotlin `import`. A trait
+import, a bare Python import, a Go blank import, a star import, a C++ header,
+and a `using namespace` stay. `bulk_replace` matches code, and includes comments
+and strings only with `include_trivia`. An unknown extension still skips
+comments, quotes, and a leading `#`. `change_signature` works in every indexed
+language and stays `PARTIAL`. `move_file` renames the file and rewrites relative
+specifiers; a missing parent directory is created at apply and removed on
+rollback when it is empty. A rename or delete entry missing its path or hash
+refuses the whole plan as `INVALID_PLAN`. Rollback restores the newest retained
+apply.
 `delete_readiness` can report `safe: true` for a private unused symbol, keeps
 the verdict `REVIEW_REQUIRED`, and writes nothing.
 

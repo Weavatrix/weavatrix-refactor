@@ -14,7 +14,7 @@
         "type": "local",
         "path": "./plugins/weavatrix-refactor"
       },
-      "version": "1.0.13",
+      "version": "1.0.14",
       "author": {
         "name": "Sergii Ziborov"
       },

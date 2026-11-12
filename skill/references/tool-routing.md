@@ -8,16 +8,16 @@ not duplicated here.
 
 - [`rename_symbol`](tools/rename_symbol.md) — one proven rename, preview and guarded apply.
 - [`rename_related_symbols`](tools/rename_related_symbols.md) — coordinated rename set, same sites as `rename_symbol`, in every indexed language.
-- [`apply_edit_plan`](tools/apply_edit_plan.md) — verify and apply a compatible exact plan.
-- [`rollback_last_apply`](tools/rollback_last_apply.md) — drift-safe transaction recovery.
+- [`apply_edit_plan`](tools/apply_edit_plan.md) — verify and apply a compatible exact plan. A broken rename or delete refuses the whole plan.
+- [`rollback_last_apply`](tools/rollback_last_apply.md) — drift-safe recovery of the newest retained apply.
 
 ## Plan-producing edits
 
 - [`edit_symbol`](tools/edit_symbol.md) — symbol-range replacement or insertion.
-- [`change_signature`](tools/change_signature.md) — add or remove a parameter in any indexed language.
-- [`bulk_replace`](tools/bulk_replace.md) — two-stage replacement of indexed code. Comments and strings only when `include_trivia` is true.
-- [`organize_imports`](tools/organize_imports.md) — removes a named binding that occurs once. Rust snake_case, Python from-imports, and Go path segments are included. Unrecognised syntax returns `NO_UNUSED_IMPORTS`.
-- [`move_file`](tools/move_file.md) — filesystem rename plus specifier rewrites.
+- [`change_signature`](tools/change_signature.md) — add or remove a parameter in any indexed language. A missed call is edited only when the name is unique. The result stays `PARTIAL`.
+- [`bulk_replace`](tools/bulk_replace.md) — two-stage replacement of indexed code. Comments and strings only when `include_trivia` is true. An unknown extension still skips comments, quotes, and a leading `#`.
+- [`organize_imports`](tools/organize_imports.md) — removes an unused named binding in Rust, Python, Go, Java, C#, C++, and Kotlin. Star imports, headers, namespaces, and unrecognised syntax stay.
+- [`move_file`](tools/move_file.md) — filesystem rename plus specifier rewrites. An empty parent created at apply is removed on rollback.
 - [`move_symbol`](tools/move_symbol.md) — cycle review plus an edit plan.
 
 ## Advisory gates

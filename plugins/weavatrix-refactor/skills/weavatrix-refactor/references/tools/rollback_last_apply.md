@@ -4,7 +4,7 @@ Use immediately after an applied transaction must be reverted and the touched fi
 
 ## Boundary
 
-Rollback is all-or-nothing and refuses to overwrite post-apply drift.
+Rollback restores the newest retained apply and refuses to overwrite post-apply drift. An empty directory created for a rename is removed. A later edit of the same path invalidates the older receipt, so only the newest apply of that path can be rolled back.
 
 ## Inputs
 

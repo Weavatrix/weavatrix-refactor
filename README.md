@@ -40,7 +40,7 @@ An MCP client can start it directly. Prefer an absolute path, or Cursor's
   "mcpServers": {
     "weavatrix-refactor": {
       "command": "npx",
-      "args": ["-y", "weavatrix-refactor@1.0.13", "mcp", "${workspaceFolder}", "--profile=refactor"],
+      "args": ["-y", "weavatrix-refactor@1.0.14", "mcp", "${workspaceFolder}", "--profile=refactor"],
       "env": {"WEAVATRIX_ALLOW_SOURCE_EDITS": "1"}
     }
   }
@@ -192,15 +192,17 @@ methods; `--profile=rename` is an optional narrower two-method workflow.
 Only edits with proven provenance are applied. A lexical or graph backend is deliberately more
 conservative than a language server and must not be read as a claim of full compiler semantics.
 
-### What 1.0.13 actually returns
+### What 1.0.14 actually returns
 
 - `delete_closure` plans a symbol, an endpoint, or a file. A repository returns `BLOCKED`. Exclusive mode returns `BLOCKED` when another file still imports the selected file. A module, a package, or any other symbol with no source span returns `NOT_A_SYMBOL`. A handler on the following line of an unclosed call is part of that route, including a uniquely named handler in another file. A closer line may end with a `//` or `/* */` comment. Exclusive mode keeps a shared handler and every other route. Connected mode also takes direct referrers.
-- `organize_imports` removes a named binding whose identifier occurs once. JavaScript and TypeScript default and namespace imports stay uncertain. A Rust snake_case `use`, a Python `from` import or alias, and a Go path segment are removed when unused. A CamelCase Rust import such as `use std::io::Write`, a `pub use`, a bare Python import, and a Go blank or dot import stay. A file whose language has no recognised import syntax returns `NO_UNUSED_IMPORTS`.
-- `bulk_replace` matches indexed code. Comments and strings are included only when `include_trivia` is true.
-- `change_signature` adds or removes a parameter in every indexed language. A typed language copies the previous parameter's type. With a default, existing calls stay. Without one, those calls are listed unless a call-site value is given.
-- `move_file` renames the file and rewrites relative specifiers in one transaction. A missing parent directory is created at apply and left in place on rollback.
-- `edit_symbol` ends the declaration at the matching brace, the indent block, or the signature line, and the plan warns that syntax was not checked.
-- `move_symbol` returns a cycle review and an edit plan that cuts the declaration into the destination file.
+- `organize_imports` removes a named binding whose identifier occurs once. JavaScript and TypeScript default and namespace imports stay uncertain. A Rust snake_case `use`, a Python `from` import or alias, a Go path segment, a Java import, a C# `using`, a C++ `using` name, and a Kotlin `import` are removed when unused. A CamelCase Rust import such as `use std::io::Write`, a `pub use`, a bare Python import, a Go blank or dot import, a star import, a C++ `#include`, and a `using namespace` stay. A file whose extension has no recognised import syntax returns `NO_UNUSED_IMPORTS`.
+- `bulk_replace` matches indexed code. Comments and strings are included only when `include_trivia` is true. An extension the tokenizer does not know still skips `//` comments, block comments, quotes, and a `#` that starts a line.
+- `change_signature` adds or removes a parameter in every indexed language, including Kotlin, which is read with the Java tokenizer. A typed language copies the previous parameter's type. With a default, existing calls stay. Without one, proven calls are edited when a call-site value is given. A call the graph missed is edited only when the name is declared once and its argument list can be read; otherwise it is listed. The result stays `PARTIAL`.
+- `move_file` renames the file and rewrites relative specifiers in one transaction. A missing parent directory is created at apply and removed on rollback when it is empty. A non-relative specifier whose last segment is the moved file is reported and the plan stays partial.
+- `edit_symbol` ends the declaration at the matching brace, the indent block, or the signature line. A signature-line end is `PARTIAL` and warns `DECLARATION_END_UNPROVEN`. The plan warns that syntax was not checked.
+- `move_symbol` returns a cycle review and an edit plan that moves the declaration, retargets the imports it can prove, and copies the imports the declaration uses. The status stays `EVALUATED`.
+- `apply_edit_plan` refuses the whole plan as `INVALID_PLAN` when a rename is missing `from`, `to`, or `sha256`, or a delete is missing `path` or `sha256`.
+- `rollback_last_apply` restores the newest retained apply. An empty directory created for a rename is removed. A later edit of the same path invalidates the older receipt.
 - `delete_readiness` can report `safe: true` for a private unused symbol. The verdict stays `REVIEW_REQUIRED` and nothing is written. A route label is renamed as a path literal. A missing span on a rename is `NOT_A_SYMBOL`.
 
 ## Measured benchmark, with unlike layers kept separate

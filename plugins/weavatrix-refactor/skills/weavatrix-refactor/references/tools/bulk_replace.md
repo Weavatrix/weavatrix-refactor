@@ -4,7 +4,7 @@ Use for an occurrence-selective literal or regex replacement after reviewing sta
 
 ## Boundary
 
-The first call should discover occurrences; the second selects ids or supplies `expected_count`. Matches are indexed code. Comments and strings are included only when `include_trivia` is true.
+The first call should discover occurrences; the second selects ids or supplies `expected_count`. Matches are indexed code. Comments and strings are included only when `include_trivia` is true. An extension the tokenizer does not know still skips `//` comments, block comments, quotes, and a `#` that starts a line.
 
 ## Inputs
 

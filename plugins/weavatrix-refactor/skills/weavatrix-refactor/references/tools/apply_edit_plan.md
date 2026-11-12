@@ -4,7 +4,7 @@ Use to verify and apply a compatible `weavatrix.edit-plan.v1` envelope produced 
 
 ## Boundary
 
-`mode:"apply"` requires the write gate and the token returned by previewing the same exact plan.
+`mode:"apply"` requires the write gate and the token returned by previewing the same exact plan. A rename entry missing `from`, `to`, or `sha256`, or a delete entry missing `path` or `sha256`, refuses the whole plan as `INVALID_PLAN`. No other entry in that plan is applied.
 
 ## Inputs
 

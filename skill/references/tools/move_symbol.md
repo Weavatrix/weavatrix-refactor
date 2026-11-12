@@ -4,7 +4,7 @@ Use to review cycles and architecture risk and to plan cutting the declaration i
 
 ## Boundary
 
-The status stays `EVALUATED` and the fidelity is `PROJECTED_FROM_GRAPH_EDGES`. The result also includes an edit plan. Apply that plan with `apply_edit_plan`. A sole `use ...::name;` import of the symbol is removed with the declaration.
+The status stays `EVALUATED` and the fidelity is `PROJECTED_FROM_GRAPH_EDGES`. The plan moves the declaration, retargets the imports it can prove, and copies the imports the declaration uses. Apply that plan with `apply_edit_plan`.
 
 ## Inputs
 

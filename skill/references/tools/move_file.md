@@ -4,7 +4,7 @@ Use to plan a filesystem rename together with the relative import specifiers tha
 
 ## Boundary
 
-The plan includes the rename and the specifier rewrites. Apply it with `apply_edit_plan`. A missing parent directory is created at apply and left in place on rollback. This call does not write by itself.
+The plan includes the rename and the specifier rewrites. Apply it with `apply_edit_plan`. A missing parent directory is created at apply and removed on rollback when it is empty. A non-relative specifier whose last segment is the moved file is reported and the plan stays partial. This call does not write by itself.
 
 ## Inputs
 
