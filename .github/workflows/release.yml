@@ -168,32 +168,10 @@ jobs:
             echo "removed full profile is still callable" >&2
             exit 1
           fi
-      - name: Publish with provenance
-        # Auth is npm trusted publishing (OIDC): the registry trusts this
-        # repository and workflow file directly, so no token is configured.
+      - name: Leave npm publishing to the maintainer machine
         shell: bash
         run: |
-          set -euo pipefail
-          VERSION="$(node -p "require('./npm/weavatrix-refactor/package.json').version")"
-          if npm view "weavatrix-refactor@$VERSION" version >/dev/null 2>&1; then
-            echo "weavatrix-refactor@$VERSION already exists; verifying registry metadata"
-          else
-            npm publish ./npm/dist/weavatrix-refactor --ignore-scripts --provenance --access public
-          fi
-
-          PUBLISHED_HEAD=""
-          PREDICATE=""
-          for attempt in $(seq 1 180); do
-            echo "npm provenance verification attempt $attempt/180"
-            PUBLISHED_HEAD="$(npm view "weavatrix-refactor@$VERSION" gitHead --json 2>/dev/null | tr -d '\"\r\n' || true)"
-            PREDICATE="$(npm view "weavatrix-refactor@$VERSION" dist.attestations.provenance.predicateType --json 2>/dev/null | tr -d '\"\r\n' || true)"
-            if [[ "$PUBLISHED_HEAD" == "$GITHUB_SHA" && "$PREDICATE" == "https://slsa.dev/provenance/v1" ]]; then
-              break
-            fi
-            sleep 5
-          done
-          [[ "$PUBLISHED_HEAD" == "$GITHUB_SHA" ]]
-          [[ "$PREDICATE" == "https://slsa.dev/provenance/v1" ]]
+          echo "The six binaries are verified here. npm publish runs from the maintainer machine and does not use this workflow."
       - name: Install verified MCP Registry publisher
         shell: bash
         run: |

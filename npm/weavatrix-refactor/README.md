@@ -44,11 +44,13 @@ Producing a plan is a read. Applying one requires two enforced gates:
 and repository. Selecting this write-capable package or a narrower tool profile
 does not grant write authority.
 
-`delete_closure` plans a symbol or an endpoint. A file, module, package,
-repository, or a symbol with no source span returns `NOT_SUPPORTED`.
-`organize_imports` plans unused named JavaScript and TypeScript bindings; any
-other language returns `UNPROVEN` and no plan. `bulk_replace` matches indexed
-file text, including comments and strings. `change_signature` works in every
+`delete_closure` plans a symbol, an endpoint, or a file. A repository returns
+`BLOCKED`. A symbol with no source span returns `NOT_A_SYMBOL`. A uniquely
+named handler in another file is part of the route. `organize_imports` removes
+an unused Rust snake_case `use`, a Python `from` import or alias, and a Go path
+segment; a trait import, a bare Python import, and a Go blank import stay.
+`bulk_replace` matches code, and includes comments and strings only with
+`include_trivia`. `change_signature` works in every
 indexed language. `move_file` renames the file and rewrites relative specifiers;
 a missing parent directory is created at apply and left in place on rollback.
 `delete_readiness` can report `safe: true` for a private unused symbol, keeps

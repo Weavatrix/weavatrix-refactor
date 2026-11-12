@@ -4,7 +4,7 @@ Use for an occurrence-selective literal or regex replacement after reviewing sta
 
 ## Boundary
 
-The first call should discover occurrences; the second selects ids or supplies `expected_count`. Matches include comments and strings. This version has no trivia filter.
+The first call should discover occurrences; the second selects ids or supplies `expected_count`. Matches are indexed code. Comments and strings are included only when `include_trivia` is true.
 
 ## Inputs
 
@@ -13,6 +13,7 @@ The first call should discover occurrences; the second selects ids or supplies `
 - `expected_count` (integer).
 - `flags` (string).
 - `literal` (boolean, default true).
+- `include_trivia` (boolean, default false) — comments and strings count only when this is true.
 - `occurrence_ids` (array<string>).
 - `output_format` ("text" | "json", default "text") — text returns concise TextContent; json also returns the stable structuredContent envelope.
 - `path_prefix` (string).

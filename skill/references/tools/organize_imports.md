@@ -1,10 +1,10 @@
 # `organize_imports`
 
-Use only for conservative removal of provably unused JavaScript or TypeScript named imports.
+Use only for conservative removal of a named import whose identifier occurs once.
 
 ## Boundary
 
-Default and namespace imports are reported uncertain, not removed; formatting is not performed. Outside JavaScript and TypeScript the answer is `UNPROVEN` and there is no plan. A Rust trait import such as `use std::io::Write` is one of those cases, because the trait name may never appear at the call.
+JavaScript and TypeScript default and namespace imports stay uncertain, and formatting is not performed. A Rust snake_case `use`, a Python `from` import or alias, and a Go path segment are removed when unused. A CamelCase Rust import such as `use std::io::Write`, a `pub use`, a bare Python import, and a Go blank or dot import stay uncertain. A file whose language has no recognised import syntax returns `NO_UNUSED_IMPORTS`.
 
 ## Inputs
 

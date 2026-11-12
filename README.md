@@ -40,7 +40,7 @@ An MCP client can start it directly. Prefer an absolute path, or Cursor's
   "mcpServers": {
     "weavatrix-refactor": {
       "command": "npx",
-      "args": ["-y", "weavatrix-refactor@1.0.12", "mcp", "${workspaceFolder}", "--profile=refactor"],
+      "args": ["-y", "weavatrix-refactor@1.0.13", "mcp", "${workspaceFolder}", "--profile=refactor"],
       "env": {"WEAVATRIX_ALLOW_SOURCE_EDITS": "1"}
     }
   }
@@ -192,11 +192,11 @@ methods; `--profile=rename` is an optional narrower two-method workflow.
 Only edits with proven provenance are applied. A lexical or graph backend is deliberately more
 conservative than a language server and must not be read as a claim of full compiler semantics.
 
-### What 1.0.12 actually returns
+### What 1.0.13 actually returns
 
-- `delete_closure` plans a symbol or an endpoint. A file, module, package, or repository, and a symbol with no source span, return `NOT_SUPPORTED`. Exclusive mode keeps a shared handler and every other route. Connected mode also takes direct referrers. A handler is recognized when its name is a whole word on the same route line in the same file.
-- `organize_imports` plans unused named JavaScript and TypeScript bindings. Any other language returns `UNPROVEN` and no plan. A Rust trait import such as `use std::io::Write` is one of those cases: the trait name may never appear at the call.
-- `bulk_replace` matches indexed file text, including comments and strings.
+- `delete_closure` plans a symbol, an endpoint, or a file. A repository returns `BLOCKED`. Exclusive mode returns `BLOCKED` when another file still imports the selected file. A module, a package, or any other symbol with no source span returns `NOT_A_SYMBOL`. A handler on the following line of an unclosed call is part of that route, including a uniquely named handler in another file. A closer line may end with a `//` or `/* */` comment. Exclusive mode keeps a shared handler and every other route. Connected mode also takes direct referrers.
+- `organize_imports` removes a named binding whose identifier occurs once. JavaScript and TypeScript default and namespace imports stay uncertain. A Rust snake_case `use`, a Python `from` import or alias, and a Go path segment are removed when unused. A CamelCase Rust import such as `use std::io::Write`, a `pub use`, a bare Python import, and a Go blank or dot import stay. A file whose language has no recognised import syntax returns `NO_UNUSED_IMPORTS`.
+- `bulk_replace` matches indexed code. Comments and strings are included only when `include_trivia` is true.
 - `change_signature` adds or removes a parameter in every indexed language. A typed language copies the previous parameter's type. With a default, existing calls stay. Without one, those calls are listed unless a call-site value is given.
 - `move_file` renames the file and rewrites relative specifiers in one transaction. A missing parent directory is created at apply and left in place on rollback.
 - `edit_symbol` ends the declaration at the matching brace, the indent block, or the signature line, and the plan warns that syntax was not checked.

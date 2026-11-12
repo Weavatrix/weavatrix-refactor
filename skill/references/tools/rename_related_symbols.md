@@ -4,7 +4,7 @@ Use for a coordinated rename set when names may conflict, chain, or swap. The op
 
 ## Boundary
 
-Several renames land in one transaction. Chains and swaps apply together. A site the graph does not prove stays uncertain, and the preview stays `PARTIAL` when any of those remain. The catalog text still says JavaScript and TypeScript; the operation does not refuse another indexed language.
+Several renames land in one transaction. Chains and swaps apply together. A site the graph does not prove stays uncertain, and the preview stays `PARTIAL` when any of those remain. The sites are the same ones `rename_symbol` proves, in every indexed language.
 
 ## Inputs
 

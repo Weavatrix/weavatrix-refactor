@@ -5,7 +5,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "weavatrix-refactor@1.0.12",
+        "weavatrix-refactor@1.0.13",
         "mcp",
         "${workspaceFolder}",
         "--profile=refactor"
