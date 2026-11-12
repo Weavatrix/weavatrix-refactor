@@ -1,6 +1,8 @@
 mod adapters;
+#[cfg(test)]
 mod application;
 mod error;
+#[cfg(test)]
 mod ports;
 mod server;
 

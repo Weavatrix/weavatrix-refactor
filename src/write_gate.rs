@@ -33,6 +33,13 @@ impl WriteGate {
         Self(false)
     }
 
+    /// An explicitly open gate, for tests that apply a plan.
+    #[cfg(test)]
+    #[must_use]
+    pub const fn open() -> Self {
+        Self(true)
+    }
+
     /// Whether writes are permitted to proceed to the token check.
     #[must_use]
     pub const fn is_open(self) -> bool {

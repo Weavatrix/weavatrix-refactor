@@ -1,18 +1,24 @@
+#[cfg(test)]
 use crate::mcp::ports::RepositoryPort;
+#[cfg(test)]
 use crate::write_gate::WriteGate;
 use blazingly_json::Value;
 use std::collections::BTreeSet;
 use std::io;
+#[cfg(test)]
 use std::path::{Path, PathBuf};
+#[cfg(test)]
 use weavatrix_rust::{Error, Weavatrix};
 use weavatrix_rust_refactor::operations as refactor;
 
-/// Catalog builder for the 11-tool extension or the 2-tool rename workflow.
+/// Catalog builder for the 12-tool extension or the 2-tool rename workflow.
 ///
 /// Refactor uses the read-only engine internally but never exports its methods.
 pub(crate) struct ToolCatalog {
     pub(crate) encoded: Value,
     pub(crate) names: BTreeSet<String>,
+    /// Kept for the single-repository server the catalog tests still drive.
+    #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) refactor_names: BTreeSet<String>,
 }
 
@@ -75,6 +81,7 @@ impl ToolCatalog {
     }
 }
 
+#[cfg(test)]
 pub(crate) struct RefactorRepository {
     root: PathBuf,
     engine: Option<Weavatrix>,
@@ -84,6 +91,7 @@ pub(crate) struct RefactorRepository {
     session: refactor::RefactorSession,
 }
 
+#[cfg(test)]
 impl RefactorRepository {
     pub(crate) fn open(
         root: PathBuf,
@@ -125,6 +133,7 @@ impl RefactorRepository {
     }
 }
 
+#[cfg(test)]
 impl RepositoryPort for RefactorRepository {
     fn root(&self) -> &Path {
         &self.root
@@ -200,18 +209,18 @@ mod tests {
     }
 
     #[test]
-    fn the_refactor_half_is_exactly_eleven_tools() {
+    fn the_refactor_half_is_exactly_twelve_tools() {
         let catalog = ToolCatalog::for_surface(ToolSurface::Refactor).expect("refactor catalog");
-        assert_eq!(catalog.refactor_names.len(), 11);
+        assert_eq!(catalog.refactor_names.len(), 12);
     }
 
     #[test]
-    fn the_refactor_surface_exposes_only_the_eleven_extension_tools() {
+    fn the_refactor_surface_exposes_only_the_twelve_extension_tools() {
         let catalog = ToolCatalog::for_surface(ToolSurface::Refactor).expect("refactor catalog");
         assert_eq!(catalog.names, catalog.refactor_names);
-        assert_eq!(catalog.names.len(), 11);
+        assert_eq!(catalog.names.len(), 12);
         assert!(!catalog.names.contains("graph_stats"));
-        assert_eq!(catalog.encoded.as_array().map(Vec::len), Some(11));
+        assert_eq!(catalog.encoded.as_array().map(Vec::len), Some(12));
     }
 
     #[test]

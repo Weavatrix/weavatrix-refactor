@@ -40,7 +40,7 @@ An MCP client can start it directly. Prefer an absolute path, or Cursor's
   "mcpServers": {
     "weavatrix-refactor": {
       "command": "npx",
-      "args": ["-y", "weavatrix-refactor@1.0.11", "mcp", "${workspaceFolder}", "--profile=refactor"],
+      "args": ["-y", "weavatrix-refactor@1.0.12", "mcp", "${workspaceFolder}", "--profile=refactor"],
       "env": {"WEAVATRIX_ALLOW_SOURCE_EDITS": "1"}
     }
   }
@@ -48,15 +48,16 @@ An MCP client can start it directly. Prefer an absolute path, or Cursor's
 ```
 
 Leave `WEAVATRIX_ALLOW_SOURCE_EDITS` unset for preview-only sessions. Preview is a read; only a
-confirmed apply or rollback requires the gate. Refactor does not expose Core's
-`open_repo`, so it cannot silently retarget mid-session; the launch root is the
-only repository it will edit.
+confirmed apply or rollback requires the gate. One process serves many calls at once. A call
+passes `repository` to select a child of the launch root; each child has its own graph, confirm
+token, and rollback, and a token from one child does not apply to another. Refactor does not
+expose Core's `open_repo`. A path outside the launch root needs `--allow-retarget`.
 
 ### Install as a plugin
 
 The repository also ships one plugin bundle for Cursor, Codex, Claude Code,
 and Grok Build. The plugin starts the extension-only profile, so it contributes
-the 11 Refactor methods without repeating Weavatrix Core's 43 read-only method
+the 12 Refactor methods without repeating Weavatrix Core's 43 read-only method
 definitions. Install the separate Weavatrix plugin when both surfaces are
 needed.
 
@@ -83,11 +84,11 @@ weavatrix-refactor mcp /absolute/path/to/repository --profile=rename
 
 The `rename` profile keeps `rename_symbol` and `rollback_last_apply`; every
 unrelated graph and refactor tool is absent and cannot be called. Omit the
-option (or use `--profile=refactor`) for all 11 Refactor methods. The narrower
+option (or use `--profile=refactor`) for all 12 Refactor methods. The narrower
 catalog reduces repeated agent context; it does not weaken preview hashes, the
 write gate, the confirmation token, or rollback checks.
 
-When Weavatrix Core is already installed as a separate MCP, expose only the 11
+When Weavatrix Core is already installed as a separate MCP, expose only the 12
 methods that Refactor adds:
 
 ```bash
@@ -161,18 +162,18 @@ unrelated shadow), and must still compile; it scores **12/12**.
 
 ## What is automatic today
 
-The eleven tools do not all claim the same level of automation:
+The twelve tools do not all claim the same level of automation:
 
 | Level | Tools | What the agent receives |
 | --- | --- | --- |
 | Complete preview/apply workflow | `rename_symbol`, `rename_related_symbols` | A generated plan and token, then a confirmed write by repeating the same operation |
-| Plan-producing | `change_signature`, `edit_symbol`, `bulk_replace`, `organize_imports`, `move_file` | Byte-exact edits or a review plan; use `apply_edit_plan` where an edit-plan envelope is returned |
-| Advisory | `move_symbol`, `delete_readiness` | Blast radius, cycle/architecture risks, or a deletion verdict; no automatic source write |
+| Plan-producing | `change_signature`, `edit_symbol`, `bulk_replace`, `organize_imports`, `move_file`, `move_symbol`, `delete_closure` | Byte-exact edits or a review plan; use `apply_edit_plan` where an edit-plan envelope is returned |
+| Advisory | `delete_readiness` | A deletion verdict. A private unused symbol can be `safe: true`. The verdict stays `REVIEW_REQUIRED` and nothing is written |
 | Safety infrastructure | `apply_edit_plan`, `rollback_last_apply` | Verification/application of an edit-plan envelope and drift-safe restoration |
 
 Refactor uses the Rust Weavatrix graph internally for evidence but never
 exports Core methods. Install the separate Weavatrix plugin for read-only
-repository intelligence. The Refactor MCP owns exactly its 11 extension
+repository intelligence. The Refactor MCP owns exactly its 12 extension
 methods; `--profile=rename` is an optional narrower two-method workflow.
 
 ## Safety model and exact limits
@@ -190,6 +191,17 @@ methods; `--profile=rename` is an optional narrower two-method workflow.
 
 Only edits with proven provenance are applied. A lexical or graph backend is deliberately more
 conservative than a language server and must not be read as a claim of full compiler semantics.
+
+### What 1.0.12 actually returns
+
+- `delete_closure` plans a symbol or an endpoint. A file, module, package, or repository, and a symbol with no source span, return `NOT_SUPPORTED`. Exclusive mode keeps a shared handler and every other route. Connected mode also takes direct referrers. A handler is recognized when its name is a whole word on the same route line in the same file.
+- `organize_imports` plans unused named JavaScript and TypeScript bindings. Any other language returns `UNPROVEN` and no plan. A Rust trait import such as `use std::io::Write` is one of those cases: the trait name may never appear at the call.
+- `bulk_replace` matches indexed file text, including comments and strings.
+- `change_signature` adds or removes a parameter in every indexed language. A typed language copies the previous parameter's type. With a default, existing calls stay. Without one, those calls are listed unless a call-site value is given.
+- `move_file` renames the file and rewrites relative specifiers in one transaction. A missing parent directory is created at apply and left in place on rollback.
+- `edit_symbol` ends the declaration at the matching brace, the indent block, or the signature line, and the plan warns that syntax was not checked.
+- `move_symbol` returns a cycle review and an edit plan that cuts the declaration into the destination file.
+- `delete_readiness` can report `safe: true` for a private unused symbol. The verdict stays `REVIEW_REQUIRED` and nothing is written. A route label is renamed as a path literal. A missing span on a rename is `NOT_A_SYMBOL`.
 
 ## Measured benchmark, with unlike layers kept separate
 
@@ -223,7 +235,7 @@ See the [full methodology, all language medians, raw-result links, and limitatio
 
 ## Contract
 
-The 11 Refactor tool names, schemas, and result states are frozen in
+The 12 Refactor tool names, schemas, and result states are frozen in
 [`contract/refactor-tools.v1.json`](contract/refactor-tools.v1.json). All refactor operations are
 native Rust; the host uses the read-only
 [`weavatrix-rust`](https://github.com/Weavatrix/weavatrix-rust) engine

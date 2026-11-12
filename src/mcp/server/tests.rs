@@ -38,11 +38,11 @@ fn status_of(reply: &ToolReply) -> String {
 }
 
 #[test]
-fn the_default_catalog_exposes_only_all_eleven_refactor_tools() {
+fn the_default_catalog_exposes_only_all_twelve_refactor_tools() {
     let mut server = RefactorServer::new(fixture(), WriteGate::closed()).expect("server");
     let catalog = server.catalog();
     let tools = catalog.as_array().expect("catalog is an array");
-    assert_eq!(tools.len(), 11);
+    assert_eq!(tools.len(), 12);
     for name in weavatrix_rust_refactor::operations::catalog_names() {
         assert_eq!(server.has_tool(&name), Some(true), "{name} is not exposed");
     }
@@ -91,7 +91,7 @@ fn the_refactor_profile_hides_core_tools_without_losing_refactor_capabilities() 
                 .map(str::to_owned)
         })
         .collect::<std::collections::BTreeSet<_>>();
-    assert_eq!(names.len(), 11);
+    assert_eq!(names.len(), 12);
     assert_eq!(server.has_tool("graph_stats"), Some(false));
     for name in weavatrix_rust_refactor::operations::catalog_names() {
         assert_eq!(server.has_tool(&name), Some(true), "{name} is not exposed");
@@ -122,6 +122,7 @@ fn a_closed_gate_refuses_every_writing_tool_and_no_reading_one() {
     }
     for name in [
         "delete_readiness",
+        "delete_closure",
         "move_symbol",
         "bulk_replace",
         "organize_imports",

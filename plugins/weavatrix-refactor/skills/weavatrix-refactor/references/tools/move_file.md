@@ -1,10 +1,10 @@
 # `move_file`
 
-Use for a JavaScript or TypeScript file-relocation review plan with importer rewrites and architecture dry-run.
+Use to plan a filesystem rename together with the relative import specifiers that point at the file.
 
 ## Boundary
 
-This returns a review plan that the agent applies mechanically; it is not an automatic apply envelope.
+The plan includes the rename and the specifier rewrites. Apply it with `apply_edit_plan`. A missing parent directory is created at apply and left in place on rollback. This call does not write by itself.
 
 ## Inputs
 

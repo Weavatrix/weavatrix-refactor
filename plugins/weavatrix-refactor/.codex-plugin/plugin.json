@@ -1,7 +1,7 @@
 {
   "name": "weavatrix-refactor",
-  "version": "1.0.11",
-  "description": "Safe action infrastructure for AI software agents: 11 evidence-backed refactor methods with exact previews, guarded writes, and rollback.",
+  "version": "1.0.12",
+  "description": "Safe action infrastructure for AI software agents: 12 evidence-backed refactor methods with exact previews, guarded writes, and rollback.",
   "author": {
     "name": "Weavatrix",
     "email": "sergii.ziborov@gmail.com",
@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Weavatrix Refactor",
     "shortDescription": "Evidence-backed refactoring with guarded writes",
-    "longDescription": "Use 11 focused refactor methods to preview exact edits and uncertainty, apply a plan with a single-use token, and roll back safely. Weavatrix Core remains a separate read-only intelligence plugin.",
+    "longDescription": "Use 12 focused refactor methods to preview exact edits and uncertainty, apply a plan with a single-use token, and roll back safely. Weavatrix Core remains a separate read-only intelligence plugin.",
     "developerName": "Weavatrix",
     "category": "Infrastructure",
     "capabilities": ["Read", "Write"],

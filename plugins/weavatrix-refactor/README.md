@@ -1,11 +1,11 @@
 # Weavatrix Refactor plugin
 
-Weavatrix Refactor adds 11 evidence-backed refactoring methods to Cursor,
+Weavatrix Refactor adds 12 evidence-backed refactoring methods to Cursor,
 Codex, Claude Code, and Grok Build. The plugin deliberately uses the
 `--profile=refactor` extension-only surface, so installing the separate
 Weavatrix core plugin does not load its 43 read-only tools twice.
 
-The launcher starts `weavatrix-refactor@1.0.11` from npm. Node.js 18 or newer
+The launcher starts `weavatrix-refactor@1.0.12` from npm. Node.js 18 or newer
 is required.
 
 The bundled skill is optional. It activates only for an explicitly requested

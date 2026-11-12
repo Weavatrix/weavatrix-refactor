@@ -1,10 +1,10 @@
 # `change_signature`
 
-Use for JavaScript or TypeScript parameter addition/removal with graph-derived call-site surgery; always review the partial result.
+Use for adding or removing a parameter in any indexed language. A typed language copies the previous parameter's type. Always review the partial result.
 
 ## Boundary
 
-This operation is JavaScript/TypeScript-only and always `PARTIAL`; spread and value-add sites remain uncertain.
+The declaration is edited in every indexed language. With a default, existing calls stay. Without one, those calls are listed and left unchanged unless a call-site value is given. The result stays `PARTIAL` when a site is uncertain. Spread and value-add sites remain uncertain.
 
 ## Inputs
 

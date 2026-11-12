@@ -1,15 +1,15 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Weavatrix/weavatrix-refactor",
-  "description": "Transactional refactoring extension with 11 evidence-backed tools, previews, and rollback.",
+  "description": "Transactional refactoring extension with 12 evidence-backed tools, previews, and rollback.",
   "repository": {"url": "https://github.com/Weavatrix/weavatrix-refactor", "source": "github"},
-  "version": "1.0.11",
+  "version": "1.0.12",
   "websiteUrl": "https://weavatrix.com",
   "packages": [{
     "registryType": "npm",
     "registryBaseUrl": "https://registry.npmjs.org",
     "identifier": "weavatrix-refactor",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "runtimeHint": "npx",
     "transport": {"type": "stdio"},
     "packageArguments": [

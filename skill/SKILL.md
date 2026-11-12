@@ -4,15 +4,15 @@ description: >-
   Use Weavatrix Refactor only when the user explicitly requests repository
   source changes that benefit from a proven refactor workflow: symbol rename,
   coordinated rename, signature change, symbol edit, selected replacement,
-  import cleanup, file or symbol move planning, deletion readiness, exact plan
-  application, or rollback. Skip it for analysis-only tasks and ordinary small
+  import cleanup, file or symbol move planning, deletion readiness, cascading
+  deletion, exact plan application, or rollback. Skip it for analysis-only tasks and ordinary small
   edits that do not need a refactor plan.
 ---
 
 # Weavatrix Refactor
 
 Use this extension on demand after the target symbol, file, or change is clear.
-The plugin exposes only 11 refactor methods; use the separate `weavatrix`
+The plugin exposes only 12 refactor methods; use the separate `weavatrix`
 skill for the 43 read-only repository-intelligence methods.
 
 ## Workflow

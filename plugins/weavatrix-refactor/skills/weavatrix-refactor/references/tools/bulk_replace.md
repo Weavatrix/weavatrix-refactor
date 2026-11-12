@@ -4,7 +4,7 @@ Use for an occurrence-selective literal or regex replacement after reviewing sta
 
 ## Boundary
 
-The first call should discover occurrences; the second selects ids or supplies `expected_count`.
+The first call should discover occurrences; the second selects ids or supplies `expected_count`. Matches include comments and strings. This version has no trivia filter.
 
 ## Inputs
 

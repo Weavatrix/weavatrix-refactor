@@ -1,10 +1,10 @@
 # `move_symbol`
 
-Use only to evaluate blast radius, cycles, and architecture risk before a manual symbol move.
+Use to review cycles and architecture risk and to plan cutting the declaration into the destination file.
 
 ## Boundary
 
-This is projected graph evidence only and produces no byte-exact edits.
+The status stays `EVALUATED` and the fidelity is `PROJECTED_FROM_GRAPH_EDGES`. The result also includes an edit plan. Apply that plan with `apply_edit_plan`. A sole `use ...::name;` import of the symbol is removed with the declaration.
 
 ## Inputs
 

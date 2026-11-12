@@ -1,14 +1,21 @@
 use crate::mcp::McpError;
-use crate::mcp::adapters::{NotifyMonitorFactory, RefactorRepository, ToolCatalog, ToolSurface};
-use crate::mcp::application::RepositorySession;
+use crate::mcp::adapters::ToolSurface;
 use crate::write_gate::WriteGate;
-use mcport::{ServerIdentity, ToolPayload, ToolReply, ToolServer, Value};
 use std::path::Path;
 use std::sync::Arc;
+use std::time::Duration;
+
+#[cfg(test)]
+use crate::mcp::adapters::{NotifyMonitorFactory, RefactorRepository, ToolCatalog};
+#[cfg(test)]
+use crate::mcp::application::RepositorySession;
+#[cfg(test)]
+use mcport::{ServerIdentity, ToolPayload, ToolReply, ToolServer, Value};
 
 /// The selected Refactor tool surface behind the shared `mcport` stdio runtime.
 ///
 /// Refactor exports only its own methods while using the Rust graph internally.
+#[cfg(test)]
 struct RefactorServer {
     identity: ServerIdentity,
     catalog: Value,
@@ -16,6 +23,7 @@ struct RefactorServer {
     session: RepositorySession,
 }
 
+#[cfg(test)]
 impl RefactorServer {
     #[cfg(test)]
     fn new(root: impl AsRef<Path>, gate: WriteGate) -> Result<Self, McpError> {
@@ -30,7 +38,7 @@ impl RefactorServer {
         let catalog = ToolCatalog::for_surface(surface)?;
         let instructions = match surface {
             ToolSurface::Refactor => {
-                "Refactor extension only: eleven evidence-backed planning, preview, apply, and \
+                "Refactor extension only: twelve evidence-backed planning, preview, apply, and \
                  rollback tools. Use the separate Weavatrix core server for read-only repository \
                  intelligence. Writes require an explicit gate and a plan-bound single-use token."
             }
@@ -59,6 +67,7 @@ impl RefactorServer {
     }
 }
 
+#[cfg(test)]
 impl ToolServer for RefactorServer {
     fn identity(&self) -> ServerIdentity {
         self.identity.clone()
@@ -105,27 +114,36 @@ impl ToolServer for RefactorServer {
 
 /// Serves the selected refactor or rename surface over stdio.
 ///
-/// The repository root and graph are validated eagerly so misconfiguration fails before the
-/// protocol handshake, and the write gate is read once at startup rather than per call.
+/// The launch root is checked before the handshake. Graphs stay lazy: the first call that names
+/// a repository opens that lane, so one large tree does not block another agent's first call.
+/// The write gate is read once at startup rather than per call.
 ///
 /// # Errors
 ///
-/// Returns stdio failures or a missing repository root.
+/// Returns stdio failures or a missing launch root.
 pub(crate) fn serve_with_surface(
     root: impl AsRef<Path>,
     gate: WriteGate,
     surface: ToolSurface,
+    allow_retarget: bool,
 ) -> Result<(), McpError> {
-    let root = root.as_ref();
-    if !root.is_dir() {
-        return Err(McpError::Io(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            format!("repository root {} is not a directory", root.display()),
-        )));
-    }
-    let mut server = RefactorServer::new_for_surface(root, gate, surface)?;
-    mcport::serve(&mut server).map_err(McpError::Io)
+    let server = parallel::ParallelServer::open(root, gate, surface, allow_retarget)?;
+    let config = mcport::RuntimeConfig {
+        max_in_flight: IN_FLIGHT,
+        queue_depth: QUEUE_DEPTH,
+        output_queue_depth: QUEUE_DEPTH,
+        handler_deadline: Some(Duration::from_secs(HANDLER_DEADLINE_SECS)),
+        ..mcport::RuntimeConfig::default()
+    };
+    mcport::serve_controlled(Arc::new(server), config).map_err(McpError::Io)
 }
 
+mod parallel;
+mod routing;
+
+pub(crate) use parallel::{HANDLER_DEADLINE_SECS, IN_FLIGHT, QUEUE_DEPTH};
+
+#[cfg(test)]
+mod lanes;
 #[cfg(test)]
 mod tests;

@@ -4,7 +4,7 @@ Use only for conservative removal of provably unused JavaScript or TypeScript na
 
 ## Boundary
 
-Default and namespace imports are reported uncertain, not removed; formatting is not performed.
+Default and namespace imports are reported uncertain, not removed; formatting is not performed. Outside JavaScript and TypeScript the answer is `UNPROVEN` and there is no plan. A Rust trait import such as `use std::io::Write` is one of those cases, because the trait name may never appear at the call.
 
 ## Inputs
 

@@ -1,6 +1,6 @@
 # weavatrix-refactor
 
-Transactional refactoring MCP extension for coding agents: 11 evidence-backed
+Transactional refactoring MCP extension for coding agents: 12 evidence-backed
 plan/apply tools, hash-bound previews, crash-recoverable writes, and rollback.
 It uses the Rust Weavatrix graph internally without exporting Core methods.
 
@@ -15,10 +15,15 @@ npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=rename
 ```
 
 That profile exposes only `rename_symbol` and `rollback_last_apply`. The default
-`--profile=refactor` surface exposes all 11 Refactor methods.
+`--profile=refactor` surface exposes all 12 Refactor methods.
+
+One process serves many calls at once. Pass `repository` to select a child of
+the launch root. Each child has its own graph, confirm token, and rollback, and
+a token from one child does not apply to another. A path outside the launch
+root needs `--allow-retarget`.
 
 When a separate Weavatrix Core server already supplies the 43 read-only tools,
-load only the 11 Refactor extensions:
+load only the 12 Refactor extensions:
 
 ```bash
 npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=refactor
@@ -38,6 +43,16 @@ Producing a plan is a read. Applying one requires two enforced gates:
 `WEAVATRIX_ALLOW_SOURCE_EDITS=1` and a single-use token bound to that exact plan
 and repository. Selecting this write-capable package or a narrower tool profile
 does not grant write authority.
+
+`delete_closure` plans a symbol or an endpoint. A file, module, package,
+repository, or a symbol with no source span returns `NOT_SUPPORTED`.
+`organize_imports` plans unused named JavaScript and TypeScript bindings; any
+other language returns `UNPROVEN` and no plan. `bulk_replace` matches indexed
+file text, including comments and strings. `change_signature` works in every
+indexed language. `move_file` renames the file and rewrites relative specifiers;
+a missing parent directory is created at apply and left in place on rollback.
+`delete_readiness` can report `safe: true` for a private unused symbol, keeps
+the verdict `REVIEW_REQUIRED`, and writes nothing.
 
 > **1.0 is the engine change.** Versions 0.1.x were a JavaScript package. That
 > package line continues as

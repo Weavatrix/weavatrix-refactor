@@ -43,7 +43,7 @@ test('both MCP manifests launch only the Refactor extension surface', () => {
             '-y',
             `weavatrix-refactor@${version}`,
             'mcp',
-            '.',
+            '${workspaceFolder}',
             '--profile=refactor',
         ])
         assert.equal(server.env.WEAVATRIX_ALLOW_SOURCE_EDITS, '1')
@@ -76,7 +76,7 @@ test('the optional skill has one compact card per Refactor method', () => {
         .map((name) => name.slice(0, -3))
         .sort()
 
-    assert.equal(names.length, 11)
+    assert.equal(names.length, 12)
     assert.deepEqual(canonical, names)
     assert.deepEqual(bundled, names)
     assert.equal(

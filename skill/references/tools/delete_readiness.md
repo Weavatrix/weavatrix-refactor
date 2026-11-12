@@ -4,7 +4,7 @@ Use to obtain a review-required deletion verdict and exact span; it never delete
 
 ## Boundary
 
-Exported symbols cannot receive a proven-safe verdict; confirm external and dynamic use before deleting.
+A private symbol with no incoming use can be `safe: true`. The verdict stays `REVIEW_REQUIRED` and nothing is written. A public or exported symbol stays not safe. Confirm external and dynamic use before deleting.
 
 ## Inputs
 

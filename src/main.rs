@@ -47,10 +47,15 @@ fn run(arguments: &[String]) -> Result<(), String> {
 fn serve_mcp(arguments: &[String]) -> Result<(), String> {
     let mut repository = ".";
     let mut surface = mcp::ToolSurface::default();
+    let mut allow_retarget = false;
     for argument in arguments.iter().skip(1) {
         if let Some(profile) = argument.strip_prefix("--profile=") {
             surface = mcp::ToolSurface::from_profile(profile)
                 .ok_or_else(|| format!("unknown MCP profile: {profile}"))?;
+            continue;
+        }
+        if argument == "--allow-retarget" {
+            allow_retarget = true;
             continue;
         }
         if argument.starts_with('-') {
@@ -58,8 +63,13 @@ fn serve_mcp(arguments: &[String]) -> Result<(), String> {
         }
         repository = argument;
     }
-    mcp::serve_with_surface(repository, WriteGate::from_environment(), surface)
-        .map_err(|error| error.to_string())
+    mcp::serve_with_surface(
+        repository,
+        WriteGate::from_environment(),
+        surface,
+        allow_retarget,
+    )
+    .map_err(|error| error.to_string())
 }
 
 fn list_tools(arguments: &[String]) -> Result<(), String> {
@@ -118,10 +128,13 @@ fn call_tool(arguments: &[String]) -> Result<(), String> {
 fn print_help() {
     println!(
         "Weavatrix Refactor: transactional refactoring backed by an internal repository graph\n\n\
-Usage:\n  weavatrix-refactor mcp [REPOSITORY] [--profile=refactor|rename]\n\
+Usage:\n  weavatrix-refactor mcp [REPOSITORY] [--profile=refactor|rename] [--allow-retarget]\n\
   weavatrix-refactor list-tools [--profile=refactor|rename]\n\
   weavatrix-refactor tool NAME [REPOSITORY] ['{{\"argument\":\"value\"}}']\n\
   weavatrix-refactor --version\n\n\
+The MCP process pins REPOSITORY and serves many calls at once. Pass repository \
+on a call to use a child directory; each repository keeps its own graph, confirm \
+token, and rollback. --allow-retarget also accepts a repository outside that pin.\n\n\
 Source edits additionally require {}=1 and a plan-bound single-use token.",
         WriteGate::VARIABLE
     );

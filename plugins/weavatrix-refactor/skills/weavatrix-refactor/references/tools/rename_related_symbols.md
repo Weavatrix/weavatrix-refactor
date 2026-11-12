@@ -1,10 +1,10 @@
 # `rename_related_symbols`
 
-Use for a coordinated JavaScript or TypeScript rename set when names may conflict, chain, or swap.
+Use for a coordinated rename set when names may conflict, chain, or swap. The operation uses the same cross-language sites as `rename_symbol`.
 
 ## Boundary
 
-Only JavaScript and TypeScript coordinated renames are currently supported.
+Several renames land in one transaction. Chains and swaps apply together. A site the graph does not prove stays uncertain, and the preview stays `PARTIAL` when any of those remain. The catalog text still says JavaScript and TypeScript; the operation does not refuse another indexed language.
 
 ## Inputs
 

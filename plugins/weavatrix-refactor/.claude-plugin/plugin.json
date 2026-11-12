@@ -1,7 +1,7 @@
 {
   "name": "weavatrix-refactor",
-  "version": "1.0.11",
-  "description": "Safe action infrastructure for AI software agents: 11 evidence-backed refactor methods with exact previews, guarded writes, and rollback.",
+  "version": "1.0.12",
+  "description": "Safe action infrastructure for AI software agents: 12 evidence-backed refactor methods with exact previews, guarded writes, and rollback.",
   "author": {
     "name": "Weavatrix",
     "email": "sergii.ziborov@gmail.com",
