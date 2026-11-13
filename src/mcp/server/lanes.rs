@@ -113,6 +113,45 @@ fn a_repository_outside_the_launch_root_needs_retarget() {
     let _ = fs::remove_dir_all(&outside);
 }
 
+#[test]
+fn a_writer_in_another_thread_makes_a_read_return_repo_busy() {
+    let launch = std::env::temp_dir().join(format!("wvxr-busy-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&launch);
+    fs::create_dir_all(launch.join("src")).expect("launch");
+    fs::write(launch.join("src/lib.rs"), "pub fn inside() -> u32 { 1 }\n").expect("source");
+    let server = ParallelServer::open(&launch, WriteGate::closed(), ToolSurface::Refactor, false)
+        .expect("server");
+    let (ready_tx, ready_rx) = std::sync::mpsc::channel();
+    let (release_tx, release_rx) = std::sync::mpsc::channel::<()>();
+    let root = launch.clone();
+    let holder = std::thread::spawn(move || {
+        let guard = weavatrix_rust_refactor::operations::repository_guard(
+            &root,
+            "rollback_last_apply",
+            &blazingly_json::json!({}),
+            true,
+        )
+        .expect("lock");
+        ready_tx.send(()).expect("ready");
+        release_rx.recv().expect("release");
+        drop(guard);
+    });
+    ready_rx.recv().expect("held");
+    let busy = server.answer(
+        "delete_readiness",
+        blazingly_json::json!({"symbol": "inside"}),
+    );
+    assert_eq!(status_of(&busy), "REPO_BUSY", "{busy:?}");
+    release_tx.send(()).expect("release");
+    holder.join().expect("holder");
+    let after = server.answer(
+        "delete_readiness",
+        blazingly_json::json!({"symbol": "inside"}),
+    );
+    assert_ne!(status_of(&after), "REPO_BUSY", "{after:?}");
+    let _ = fs::remove_dir_all(&launch);
+}
+
 fn symbol_id(root: &std::path::Path, prefix: &str) -> String {
     let engine = weavatrix_rust::Weavatrix::open(root).expect("open fixture");
     engine

@@ -40,7 +40,7 @@ An MCP client can start it directly. Prefer an absolute path, or Cursor's
   "mcpServers": {
     "weavatrix-refactor": {
       "command": "npx",
-      "args": ["-y", "weavatrix-refactor@1.0.14", "mcp", "${workspaceFolder}", "--profile=refactor"],
+      "args": ["-y", "weavatrix-refactor@1.0.15", "mcp", "${workspaceFolder}", "--profile=refactor"],
       "env": {"WEAVATRIX_ALLOW_SOURCE_EDITS": "1"}
     }
   }
@@ -50,8 +50,10 @@ An MCP client can start it directly. Prefer an absolute path, or Cursor's
 Leave `WEAVATRIX_ALLOW_SOURCE_EDITS` unset for preview-only sessions. Preview is a read; only a
 confirmed apply or rollback requires the gate. One process serves many calls at once. A call
 passes `repository` to select a child of the launch root; each child has its own graph, confirm
-token, and rollback, and a token from one child does not apply to another. Refactor does not
-expose Core's `open_repo`. A path outside the launch root needs `--allow-retarget`.
+token, and rollback, and a token from one child does not apply to another. Readers of one
+repository share a lock. A writer holds that lock alone, so another process receives `REPO_BUSY`
+and keeps its confirm token. Refactor does not expose Core's `open_repo`. A path outside the
+launch root needs `--allow-retarget`.
 
 ### Install as a plugin
 
@@ -186,24 +188,128 @@ methods; `--profile=rename` is an optional narrower two-method workflow.
 - Apply requires `WEAVATRIX_ALLOW_SOURCE_EDITS=1` plus a short-lived, single-use token bound to
   that repository and exact recomputed plan.
 - `rollback_last_apply` refuses to overwrite files that drifted after the transaction.
-- Multi-file writes are journaled and crash-recoverable. They are not observationally atomic to
-  unrelated processes: another process may briefly observe an intermediate filesystem state.
+- Multi-file writes are journaled and crash-recoverable. Another Refactor process that is
+  reading or writing the same repository receives `REPO_BUSY` until the call finishes. The
+  confirm token stays usable.
 
 Only edits with proven provenance are applied. A lexical or graph backend is deliberately more
 conservative than a language server and must not be read as a claim of full compiler semantics.
 
-### What 1.0.14 actually returns
+## MCP methods
 
-- `delete_closure` plans a symbol, an endpoint, or a file. A repository returns `BLOCKED`. Exclusive mode returns `BLOCKED` when another file still imports the selected file. A module, a package, or any other symbol with no source span returns `NOT_A_SYMBOL`. A handler on the following line of an unclosed call is part of that route, including a uniquely named handler in another file. A closer line may end with a `//` or `/* */` comment. Exclusive mode keeps a shared handler and every other route. Connected mode also takes direct referrers.
-- `organize_imports` removes a named binding whose identifier occurs once. JavaScript and TypeScript default and namespace imports stay uncertain. A Rust snake_case `use`, a Python `from` import or alias, a Go path segment, a Java import, a C# `using`, a C++ `using` name, and a Kotlin `import` are removed when unused. A CamelCase Rust import such as `use std::io::Write`, a `pub use`, a bare Python import, a Go blank or dot import, a star import, a C++ `#include`, and a `using namespace` stay. A file whose extension has no recognised import syntax returns `NO_UNUSED_IMPORTS`.
-- `bulk_replace` matches indexed code. Comments and strings are included only when `include_trivia` is true. An extension the tokenizer does not know still skips `//` comments, block comments, quotes, and a `#` that starts a line.
-- `change_signature` adds or removes a parameter in every indexed language, including Kotlin, which is read with the Java tokenizer. A typed language copies the previous parameter's type. With a default, existing calls stay. Without one, proven calls are edited when a call-site value is given. A call the graph missed is edited only when the name is declared once and its argument list can be read; otherwise it is listed. The result stays `PARTIAL`.
-- `move_file` renames the file and rewrites relative specifiers in one transaction. A missing parent directory is created at apply and removed on rollback when it is empty. A non-relative specifier whose last segment is the moved file is reported and the plan stays partial.
-- `edit_symbol` ends the declaration at the matching brace, the indent block, or the signature line. A signature-line end is `PARTIAL` and warns `DECLARATION_END_UNPROVEN`. The plan warns that syntax was not checked.
-- `move_symbol` returns a cycle review and an edit plan that moves the declaration, retargets the imports it can prove, and copies the imports the declaration uses. The status stays `EVALUATED`.
-- `apply_edit_plan` refuses the whole plan as `INVALID_PLAN` when a rename is missing `from`, `to`, or `sha256`, or a delete is missing `path` or `sha256`.
-- `rollback_last_apply` restores the newest retained apply. An empty directory created for a rename is removed. A later edit of the same path invalidates the older receipt.
-- `delete_readiness` can report `safe: true` for a private unused symbol. The verdict stays `REVIEW_REQUIRED` and nothing is written. A route label is renamed as a path literal. A missing span on a rename is `NOT_A_SYMBOL`.
+The default profile exposes these twelve methods. `--profile=rename` keeps only
+`rename_symbol` and `rollback_last_apply`. A planning method returns an edit plan.
+`apply_edit_plan` is the write for every plan except the two rename methods, which
+apply themselves when `mode` is `"apply"`.
+
+### `rename_symbol`
+
+Renames one symbol from the graph. A bare name that matches more than one symbol
+returns `NOT_FOUND` and the candidate ids. The preview lists the declaration and
+every call or reference the graph proves, plus import lines of files the graph
+proves import the declaring file. A same-named occurrence the graph does not
+prove stays in `uncertainReferences` and is left unchanged. Completeness stays
+`PARTIAL`. Repeat the same symbol and `new_name` with `mode:"apply"` and the
+preview token to write. A missing source span is `NOT_A_SYMBOL`. A route label
+is renamed as a path literal.
+
+### `rename_related_symbols`
+
+Renames several symbols in one transaction. The sites are the same ones
+`rename_symbol` can prove, in every indexed language. Two symbols given one new
+name, or two edits of the same site, return `CONFLICT`. A chain or a swap is
+applied together and reported in `ordering`. Completeness stays `PARTIAL`.
+Preview returns the token; `mode:"apply"` with that token writes the whole batch.
+
+### `change_signature`
+
+Plans an added or removed parameter in every indexed language. Kotlin is read
+with the Java tokenizer. A typed language copies the previous parameter's type.
+When the new parameter has a default, existing calls stay. Without a default,
+proven calls are edited when the call supplies a value. A call the graph missed
+is edited only when that name is declared once and its argument list can be
+read; otherwise the call is listed. The result stays `PARTIAL`. Spread arguments
+are reported and left unchanged. Apply the returned plan with `apply_edit_plan`.
+
+### `edit_symbol`
+
+Plans a replacement or insertion inside one declaration. The range runs from the
+declaration through the matching brace or the indent block. When only the
+signature line can be located, the plan is `PARTIAL` and warns
+`DECLARATION_END_UNPROVEN`. Every plan warns that syntax was not checked. Apply
+it with `apply_edit_plan`.
+
+### `bulk_replace`
+
+Plans a literal or regular-expression replacement over indexed code, in two
+stages: list the occurrences, then plan the ones you accept. Comments and strings
+are included only when `include_trivia` is true. An extension the tokenizer does
+not know still skips `//` comments, block comments, quotes, and a `#` that starts
+a line. The caps are 5000 files, 500 matches in one file, and 5000 matches in
+the plan. Apply the plan with `apply_edit_plan`.
+
+### `organize_imports`
+
+Plans removal of a named binding whose identifier occurs once in the file. A
+Rust snake_case `use`, a Python `from` import or alias, a Go path segment, a
+Java import, a C# `using`, a C++ `using` name, and a Kotlin `import` are removed
+when that is true. A CamelCase Rust import such as `use std::io::Write`, a
+`pub use`, a bare Python `import`, a Go blank or dot import, a star import, a
+C++ `#include`, and a `using namespace` stay. JavaScript and TypeScript default
+and namespace imports stay uncertain. A file whose extension has no recognised
+import syntax returns `NO_UNUSED_IMPORTS`. Apply the plan with `apply_edit_plan`.
+
+### `move_file`
+
+Plans the filesystem rename and the relative import rewrites in one transaction.
+A missing parent directory is created at apply and removed on rollback when it
+is empty. A non-relative specifier whose last segment is the moved file is
+reported, left unchanged, and the plan stays `PARTIAL`. Apply the plan with
+`apply_edit_plan`.
+
+### `move_symbol`
+
+Reviews whether the move would cycle, then returns an edit plan. The status
+stays `EVALUATED`. The plan moves the declaration, retargets the imports it can
+prove, and copies the imports the declaration uses. Apply that plan with
+`apply_edit_plan`.
+
+### `delete_readiness`
+
+Reports whether anything still depends on a symbol. It writes nothing. A private
+symbol with no incoming use can be `safe: true`. The verdict stays
+`REVIEW_REQUIRED`.
+
+### `delete_closure`
+
+Plans deletion of one symbol, endpoint, or file together with the callees that
+nothing outside that closure uses. `scope:"exclusive"` returns `BLOCKED` when
+another contract still uses the selection, including another file that imports
+the selected file. `scope:"connected"` also removes direct referrers, one hop.
+A repository returns `BLOCKED`. A module, a package, or any other symbol with
+no source span returns `NOT_A_SYMBOL`. A handler on the following line of an
+unclosed call is part of that route, including a uniquely named handler in
+another file. A closer line may end with a `//` or `/* */` comment. The plan
+stays `PARTIAL`. Apply it with `apply_edit_plan`.
+
+### `apply_edit_plan`
+
+Verifies a `weavatrix.edit-plan.v1` envelope and, with `mode:"apply"`, writes it.
+Preview returns `PREVIEW_OK` and a single-use token bound to that plan and
+repository. Apply requires `WEAVATRIX_ALLOW_SOURCE_EDITS=1` and that token. A
+rename entry missing `from`, `to`, or `sha256`, or a delete entry missing `path`
+or `sha256`, refuses the whole plan as `INVALID_PLAN`. A plan whose hashes do
+not match the working tree is `PREVIEW_BLOCKED` or `STALE`. Another process
+reading or writing that repository returns `REPO_BUSY`, and the confirm token
+stays usable.
+
+### `rollback_last_apply`
+
+Restores the newest retained apply for that repository. An empty directory a
+rename created is removed. A later edit of the same path invalidates the older
+receipt, so two applies roll back in order only when they touch different paths.
+The call requires the write gate. Another process using the repository returns
+`REPO_BUSY`. When nothing has been applied, the status is `NO_CHANGE`.
 
 ## Measured benchmark, with unlike layers kept separate
 

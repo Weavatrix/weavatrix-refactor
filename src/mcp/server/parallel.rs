@@ -132,6 +132,13 @@ impl ParallelServer {
         let lane = self.lane_for(target);
         let mut inner = lock(&lane.inner);
         inner.used = Instant::now();
+        // After the lane mutex, so two calls in this process wait their turn. Before the graph
+        // refresh, so a reader cannot scan a file another process is writing. The session takes
+        // the same lock again on this thread.
+        let _guard = match refactor::repository_guard(target, name, arguments, self.write_allowed) {
+            Ok(guard) => guard,
+            Err(refusal) => return Ok(stamp_repository(refusal, target)),
+        };
         ensure_engine(&mut inner, target)?;
         routing::strip_routing(arguments);
         let state = inner
@@ -139,14 +146,8 @@ impl ParallelServer {
             .as_ref()
             .ok_or_else(|| format!("repository graph is not initialized: {}", target.display()))?
             .state();
-        let mut value = inner.session.call(state, name, arguments)?;
-        if let Some(object) = value.as_object_mut() {
-            object.insert(
-                "repository".to_owned(),
-                blazingly_json::json!(target.display().to_string()),
-            );
-        }
-        Ok(value)
+        let value = inner.session.call(state, name, arguments)?;
+        Ok(stamp_repository(value, target))
     }
 
     fn lane_for(&self, target: &Path) -> Arc<Lane> {
@@ -224,6 +225,16 @@ impl ConcurrentToolServer for ParallelServer {
     fn call(&self, _context: &RequestContext, name: &str, arguments: Value) -> ToolReply {
         self.answer(name, arguments)
     }
+}
+
+fn stamp_repository(mut value: Value, target: &Path) -> Value {
+    if let Some(object) = value.as_object_mut() {
+        object.insert(
+            "repository".to_owned(),
+            blazingly_json::json!(target.display().to_string()),
+        );
+    }
+    value
 }
 
 fn ensure_engine(inner: &mut LaneInner, target: &Path) -> Result<(), String> {

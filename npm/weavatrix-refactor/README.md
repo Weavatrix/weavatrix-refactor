@@ -44,22 +44,66 @@ Producing a plan is a read. Applying one requires two enforced gates:
 and repository. Selecting this write-capable package or a narrower tool profile
 does not grant write authority.
 
-`delete_closure` plans a symbol, an endpoint, or a file. A repository returns
-`BLOCKED`. A symbol with no source span returns `NOT_A_SYMBOL`. A uniquely
-named handler in another file is part of the route. `organize_imports` removes
-an unused Rust snake_case `use`, a Python `from` import, a Go path segment, a
-Java import, a C# `using`, a C++ `using` name, and a Kotlin `import`. A trait
-import, a bare Python import, a Go blank import, a star import, a C++ header,
-and a `using namespace` stay. `bulk_replace` matches code, and includes comments
-and strings only with `include_trivia`. An unknown extension still skips
-comments, quotes, and a leading `#`. `change_signature` works in every indexed
-language and stays `PARTIAL`. `move_file` renames the file and rewrites relative
-specifiers; a missing parent directory is created at apply and removed on
-rollback when it is empty. A rename or delete entry missing its path or hash
-refuses the whole plan as `INVALID_PLAN`. Rollback restores the newest retained
-apply.
-`delete_readiness` can report `safe: true` for a private unused symbol, keeps
-the verdict `REVIEW_REQUIRED`, and writes nothing.
+## MCP methods
+
+`rename_symbol` renames one symbol from the graph. An ambiguous name returns
+candidate ids. Proven sites are planned; a same-named occurrence the graph does
+not prove stays in `uncertainReferences`. Completeness stays `PARTIAL`.
+`mode:"apply"` with the preview token writes.
+
+`rename_related_symbols` renames several symbols in one transaction. A collision
+returns `CONFLICT`. A chain or a swap is applied together. Completeness stays
+`PARTIAL`. Preview, then `mode:"apply"` with the token.
+
+`change_signature` plans an added or removed parameter in every indexed
+language. Kotlin is read with the Java tokenizer. A default leaves existing
+calls. Without one, proven calls are edited when a value is given. A missed
+call is edited only when the name is declared once. The result stays `PARTIAL`.
+Apply the plan with `apply_edit_plan`.
+
+`edit_symbol` plans a replacement or insertion inside one declaration. The end
+is the matching brace or the indent block. A signature-line end is `PARTIAL`
+and warns `DECLARATION_END_UNPROVEN`. Apply the plan with `apply_edit_plan`.
+
+`bulk_replace` plans a literal or regex replacement of indexed code. Comments
+and strings are included only with `include_trivia`. An unknown extension still
+skips comments, quotes, and a `#` that starts a line. Apply the plan with
+`apply_edit_plan`.
+
+`organize_imports` removes a named binding that occurs once: a Rust snake_case
+`use`, a Python `from` import, a Go path segment, a Java import, a C# `using`,
+a C++ `using` name, or a Kotlin `import`. A trait import, `pub use`, a bare
+Python import, a Go blank or dot import, a star import, a C++ `#include`, and a
+`using namespace` stay. An unrecognised extension returns `NO_UNUSED_IMPORTS`.
+
+`move_file` plans the filesystem rename and the relative import rewrites. A
+missing parent directory is created at apply and removed on rollback when it is
+empty. A non-relative specifier whose last segment is the moved file keeps the
+plan `PARTIAL`.
+
+`move_symbol` returns a cycle review and an edit plan that moves the
+declaration and retargets the imports it can prove. The status stays
+`EVALUATED`. Apply the plan with `apply_edit_plan`.
+
+`delete_readiness` reports whether anything still depends on a symbol. It
+writes nothing. A private unused symbol can be `safe: true`. The verdict stays
+`REVIEW_REQUIRED`.
+
+`delete_closure` plans deletion of a symbol, endpoint, or file and the callees
+only that closure uses. `scope:"exclusive"` returns `BLOCKED` when another
+contract still uses it. `scope:"connected"` also removes direct referrers. A
+repository returns `BLOCKED`. A symbol with no source span returns
+`NOT_A_SYMBOL`. Apply the plan with `apply_edit_plan`.
+
+`apply_edit_plan` previews a `weavatrix.edit-plan.v1` envelope and writes it
+when `mode` is `"apply"`. Apply needs the write gate and the preview token. A
+rename missing `from`, `to`, or `sha256`, or a delete missing `path` or
+`sha256`, refuses the whole plan as `INVALID_PLAN`. Another process reading or
+writing that repository returns `REPO_BUSY`, and the confirm token stays usable.
+
+`rollback_last_apply` restores the newest retained apply and removes an empty
+directory a rename created. It requires the write gate. Another process using
+the repository returns `REPO_BUSY`.
 
 > **1.0 is the engine change.** Versions 0.1.x were a JavaScript package. That
 > package line continues as

@@ -2,6 +2,7 @@ mod mcp;
 mod write_gate;
 
 use std::env;
+use std::path::Path;
 use std::process::ExitCode;
 use weavatrix_rust::Weavatrix;
 use weavatrix_rust_refactor::operations as refactor;
@@ -105,8 +106,6 @@ fn call_tool(arguments: &[String]) -> Result<(), String> {
             |value| blazingly_json::from_str(value),
         )
         .map_err(|error| format!("invalid operation JSON: {error}"))?;
-
-    let engine = Weavatrix::open(repository).map_err(|error| error.to_string())?;
     if refactor::Operation::from_name(name).is_none() {
         return Err(format!(
             "tool `{name}` is not part of the Weavatrix Refactor extension"
@@ -114,8 +113,21 @@ fn call_tool(arguments: &[String]) -> Result<(), String> {
     }
     // The gate is passed into the session rather than checked beside it. Checking here and
     // then handing the session a different answer is how a caller gets WRITE_GATE_CLOSED
-    // with the gate open.
+    // with the gate open. The lock is taken before the graph is built, so this process cannot
+    // read a file another process is writing. A busy repository is a tool result.
     let gate = WriteGate::from_environment();
+    let _guard =
+        match refactor::repository_guard(Path::new(repository), name, &input, gate.is_open()) {
+            Ok(guard) => guard,
+            Err(refusal) => {
+                println!(
+                    "{}",
+                    blazingly_json::to_string_pretty(&refusal).map_err(|error| error.to_string())?
+                );
+                return Ok(());
+            }
+        };
+    let engine = Weavatrix::open(repository).map_err(|error| error.to_string())?;
     let output =
         refactor::RefactorSession::new(gate.is_open()).call(engine.state(), name, &input)?;
     println!(
@@ -135,7 +147,8 @@ Usage:\n  weavatrix-refactor mcp [REPOSITORY] [--profile=refactor|rename] [--all
 The MCP process pins REPOSITORY and serves many calls at once. Pass repository \
 on a call to use a child directory; each repository keeps its own graph, confirm \
 token, and rollback. --allow-retarget also accepts a repository outside that pin.\n\n\
-Source edits additionally require {}=1 and a plan-bound single-use token.",
+Source edits additionally require {}=1 and a plan-bound single-use token. A repository \
+another process is using returns REPO_BUSY and does not spend that token.",
         WriteGate::VARIABLE
     );
 }
