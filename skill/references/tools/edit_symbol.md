@@ -4,7 +4,7 @@ Use for a source-range anchored replace-body, insert-before, or insert-after edi
 
 ## Boundary
 
-The declaration end is the matching brace, the indent block, or the signature line. A signature-line end is `PARTIAL` and warns `DECLARATION_END_UNPROVEN`. The plan warns that syntax was not checked. An unclosed body stops at the signature instead of consuming the next function.
+The declaration end is the matching brace, the indent block, or the signature line. A signature-line end is `PARTIAL` and warns `DECLARATION_END_UNPROVEN`. Rust is parsed with `syn` after the edit. Other tokenized languages are checked for an unterminated literal and unmatched delimiters. A result that does not parse returns `INVALID_PLAN` and no plan. A language with no checker warns `SYNTAX_CHECK_NOT_PERFORMED`. An unclosed body stops at the signature instead of consuming the next function.
 
 ## Inputs
 

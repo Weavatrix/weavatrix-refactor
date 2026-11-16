@@ -40,7 +40,7 @@ An MCP client can start it directly. Prefer an absolute path, or Cursor's
   "mcpServers": {
     "weavatrix-refactor": {
       "command": "npx",
-      "args": ["-y", "weavatrix-refactor@1.0.15", "mcp", "${workspaceFolder}", "--profile=refactor"],
+      "args": ["-y", "weavatrix-refactor@1.0.16", "mcp", "${workspaceFolder}", "--profile=refactor"],
       "env": {"WEAVATRIX_ALLOW_SOURCE_EDITS": "1"}
     }
   }
@@ -51,15 +51,16 @@ Leave `WEAVATRIX_ALLOW_SOURCE_EDITS` unset for preview-only sessions. Preview is
 confirmed apply or rollback requires the gate. One process serves many calls at once. A call
 passes `repository` to select a child of the launch root; each child has its own graph, confirm
 token, and rollback, and a token from one child does not apply to another. Readers of one
-repository share a lock. A writer holds that lock alone, so another process receives `REPO_BUSY`
-and keeps its confirm token. Refactor does not expose Core's `open_repo`. A path outside the
-launch root needs `--allow-retarget`.
+repository share a lock. A writer holds that lock alone, so another process on that same
+repository receives `REPO_BUSY` and keeps its confirm token. Any other repository runs at
+the same time. Refactor does not expose Core's `open_repo`. A path outside the launch root
+needs `--allow-retarget`.
 
 ### Install as a plugin
 
 The repository also ships one plugin bundle for Cursor, Codex, Claude Code,
 and Grok Build. The plugin starts the extension-only profile, so it contributes
-the 12 Refactor methods without repeating Weavatrix Core's 43 read-only method
+the 13 Refactor methods without repeating Weavatrix Core's 43 read-only method
 definitions. Install the separate Weavatrix plugin when both surfaces are
 needed.
 
@@ -86,11 +87,11 @@ weavatrix-refactor mcp /absolute/path/to/repository --profile=rename
 
 The `rename` profile keeps `rename_symbol` and `rollback_last_apply`; every
 unrelated graph and refactor tool is absent and cannot be called. Omit the
-option (or use `--profile=refactor`) for all 12 Refactor methods. The narrower
+option (or use `--profile=refactor`) for all 13 Refactor methods. The narrower
 catalog reduces repeated agent context; it does not weaken preview hashes, the
 write gate, the confirmation token, or rollback checks.
 
-When Weavatrix Core is already installed as a separate MCP, expose only the 12
+When Weavatrix Core is already installed as a separate MCP, expose only the 13
 methods that Refactor adds:
 
 ```bash
@@ -164,18 +165,18 @@ unrelated shadow), and must still compile; it scores **12/12**.
 
 ## What is automatic today
 
-The twelve tools do not all claim the same level of automation:
+The thirteen tools do not all claim the same level of automation:
 
 | Level | Tools | What the agent receives |
 | --- | --- | --- |
 | Complete preview/apply workflow | `rename_symbol`, `rename_related_symbols` | A generated plan and token, then a confirmed write by repeating the same operation |
-| Plan-producing | `change_signature`, `edit_symbol`, `bulk_replace`, `organize_imports`, `move_file`, `move_symbol`, `delete_closure` | Byte-exact edits or a review plan; use `apply_edit_plan` where an edit-plan envelope is returned |
+| Plan-producing | `change_signature`, `edit_symbol`, `bulk_replace`, `organize_imports`, `move_file`, `move_symbol`, `delete_closure`, `remove_duplicates` | Byte-exact edits or a review plan; use `apply_edit_plan` where an edit-plan envelope is returned |
 | Advisory | `delete_readiness` | A deletion verdict. A private unused symbol can be `safe: true`. The verdict stays `REVIEW_REQUIRED` and nothing is written |
 | Safety infrastructure | `apply_edit_plan`, `rollback_last_apply` | Verification/application of an edit-plan envelope and drift-safe restoration |
 
 Refactor uses the Rust Weavatrix graph internally for evidence but never
 exports Core methods. Install the separate Weavatrix plugin for read-only
-repository intelligence. The Refactor MCP owns exactly its 12 extension
+repository intelligence. The Refactor MCP owns exactly its 13 extension
 methods; `--profile=rename` is an optional narrower two-method workflow.
 
 ## Safety model and exact limits
@@ -189,15 +190,15 @@ methods; `--profile=rename` is an optional narrower two-method workflow.
   that repository and exact recomputed plan.
 - `rollback_last_apply` refuses to overwrite files that drifted after the transaction.
 - Multi-file writes are journaled and crash-recoverable. Another Refactor process that is
-  reading or writing the same repository receives `REPO_BUSY` until the call finishes. The
-  confirm token stays usable.
+  reading or writing the same repository receives `REPO_BUSY` until the call finishes. Any
+  other repository runs at the same time. The confirm token stays usable.
 
 Only edits with proven provenance are applied. A lexical or graph backend is deliberately more
 conservative than a language server and must not be read as a claim of full compiler semantics.
 
 ## MCP methods
 
-The default profile exposes these twelve methods. `--profile=rename` keeps only
+The default profile exposes these thirteen methods. `--profile=rename` keeps only
 `rename_symbol` and `rollback_last_apply`. A planning method returns an edit plan.
 `apply_edit_plan` is the write for every plan except the two rename methods, which
 apply themselves when `mode` is `"apply"`.
@@ -236,8 +237,9 @@ are reported and left unchanged. Apply the returned plan with `apply_edit_plan`.
 Plans a replacement or insertion inside one declaration. The range runs from the
 declaration through the matching brace or the indent block. When only the
 signature line can be located, the plan is `PARTIAL` and warns
-`DECLARATION_END_UNPROVEN`. Every plan warns that syntax was not checked. Apply
-it with `apply_edit_plan`.
+`DECLARATION_END_UNPROVEN`. Rust is parsed after the edit. A result that does
+not parse returns `INVALID_PLAN` and no plan. Apply a planned edit with
+`apply_edit_plan`.
 
 ### `bulk_replace`
 
@@ -274,6 +276,16 @@ stays `EVALUATED`. The plan moves the declaration, retargets the imports it can
 prove, and copies the imports the declaration uses. Apply that plan with
 `apply_edit_plan`.
 
+### `remove_duplicates`
+
+Plans deletion of function and method declarations whose source, including the
+name, is byte for byte the same. One copy stays. A copy another symbol uses, an
+exported copy, and a copy whose body can load code dynamically stay. Pass
+`symbol` to limit the plan to that declaration. The file is parsed after the
+deletion; a result that does not parse is left in `kept`. More than 200
+deletions returns `BLOCKED`. Completeness stays `PARTIAL`. Apply the plan with
+`apply_edit_plan`.
+
 ### `delete_readiness`
 
 Reports whether anything still depends on a symbol. It writes nothing. A private
@@ -301,7 +313,7 @@ rename entry missing `from`, `to`, or `sha256`, or a delete entry missing `path`
 or `sha256`, refuses the whole plan as `INVALID_PLAN`. A plan whose hashes do
 not match the working tree is `PREVIEW_BLOCKED` or `STALE`. Another process
 reading or writing that repository returns `REPO_BUSY`, and the confirm token
-stays usable.
+stays usable. Any other repository runs at the same time.
 
 ### `rollback_last_apply`
 
@@ -309,7 +321,8 @@ Restores the newest retained apply for that repository. An empty directory a
 rename created is removed. A later edit of the same path invalidates the older
 receipt, so two applies roll back in order only when they touch different paths.
 The call requires the write gate. Another process using the repository returns
-`REPO_BUSY`. When nothing has been applied, the status is `NO_CHANGE`.
+`REPO_BUSY`. Any other repository runs at the same time. When nothing has been
+applied, the status is `NO_CHANGE`.
 
 ## Measured benchmark, with unlike layers kept separate
 
@@ -343,7 +356,7 @@ See the [full methodology, all language medians, raw-result links, and limitatio
 
 ## Contract
 
-The 12 Refactor tool names, schemas, and result states are frozen in
+The 13 Refactor tool names, schemas, and result states are frozen in
 [`contract/refactor-tools.v1.json`](contract/refactor-tools.v1.json). All refactor operations are
 native Rust; the host uses the read-only
 [`weavatrix-rust`](https://github.com/Weavatrix/weavatrix-rust) engine

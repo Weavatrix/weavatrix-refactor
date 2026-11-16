@@ -1,6 +1,6 @@
 # weavatrix-refactor
 
-Transactional refactoring MCP extension for coding agents: 12 evidence-backed
+Transactional refactoring MCP extension for coding agents: 13 evidence-backed
 plan/apply tools, hash-bound previews, crash-recoverable writes, and rollback.
 It uses the Rust Weavatrix graph internally without exporting Core methods.
 
@@ -15,7 +15,7 @@ npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=rename
 ```
 
 That profile exposes only `rename_symbol` and `rollback_last_apply`. The default
-`--profile=refactor` surface exposes all 12 Refactor methods.
+`--profile=refactor` surface exposes all 13 Refactor methods.
 
 One process serves many calls at once. Pass `repository` to select a child of
 the launch root. Each child has its own graph, confirm token, and rollback, and
@@ -23,7 +23,7 @@ a token from one child does not apply to another. A path outside the launch
 root needs `--allow-retarget`.
 
 When a separate Weavatrix Core server already supplies the 43 read-only tools,
-load only the 12 Refactor extensions:
+load only the 13 Refactor extensions:
 
 ```bash
 npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=refactor
@@ -63,7 +63,14 @@ Apply the plan with `apply_edit_plan`.
 
 `edit_symbol` plans a replacement or insertion inside one declaration. The end
 is the matching brace or the indent block. A signature-line end is `PARTIAL`
-and warns `DECLARATION_END_UNPROVEN`. Apply the plan with `apply_edit_plan`.
+and warns `DECLARATION_END_UNPROVEN`. Rust is parsed after the edit. A result
+that does not parse returns `INVALID_PLAN`. Apply the plan with `apply_edit_plan`.
+
+`remove_duplicates` plans deletion of function and method declarations whose
+source, including the name, is the same bytes. One copy stays. A copy that is
+still used, exported, or able to load code dynamically stays. Pass `symbol` to
+limit the plan to that declaration. Completeness stays `PARTIAL`. Apply the
+plan with `apply_edit_plan`.
 
 `bulk_replace` plans a literal or regex replacement of indexed code. Comments
 and strings are included only with `include_trivia`. An unknown extension still
@@ -100,10 +107,11 @@ when `mode` is `"apply"`. Apply needs the write gate and the preview token. A
 rename missing `from`, `to`, or `sha256`, or a delete missing `path` or
 `sha256`, refuses the whole plan as `INVALID_PLAN`. Another process reading or
 writing that repository returns `REPO_BUSY`, and the confirm token stays usable.
+Any other repository runs at the same time.
 
 `rollback_last_apply` restores the newest retained apply and removes an empty
 directory a rename created. It requires the write gate. Another process using
-the repository returns `REPO_BUSY`.
+the repository returns `REPO_BUSY`. Any other repository runs at the same time.
 
 > **1.0 is the engine change.** Versions 0.1.x were a JavaScript package. That
 > package line continues as

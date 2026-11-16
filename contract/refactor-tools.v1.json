@@ -1,11 +1,11 @@
 {
-  "contractVersion": 2,
+  "contractVersion": 3,
   "frozenFrom": {
     "package": "weavatrix-refactor-js",
     "version": "0.1.7",
     "engine": "^0.3.15"
   },
-  "note": "Version 1 was recorded from the shipping JavaScript implementation. Version 2 adds delete_closure and keeps the same result states. A Rust host is conformant when it exposes exactly these tool names with these schemas, and never emits a status outside resultStates. Additions require a contract version bump.",
+  "note": "Version 1 was recorded from the shipping JavaScript implementation. Version 2 adds delete_closure and keeps the same result states. Version 3 adds remove_duplicates and keeps those result states. A Rust host is conformant when it exposes exactly these tool names with these schemas, and never emits a status outside resultStates. Additions require a contract version bump.",
   "tools": [
     {
       "name": "rename_symbol",
@@ -52,7 +52,7 @@
     },
     {
       "name": "rename_related_symbols",
-      "description": "Complete coordinated JS/TS multi-symbol rename as ONE atomic workflow with conflict/chain/swap detection. Default mode=\"preview\" returns a plan-bound confirm_token; repeat with identical renames, mode=\"apply\", and that token to write atomically with rollback. Blocks entirely if any sub-rename fails.",
+      "description": "Complete coordinated multi-symbol rename as ONE atomic workflow with conflict/chain/swap detection. Sites are the same ones rename_symbol proves, in every indexed language. Default mode=\"preview\" returns a plan-bound confirm_token; repeat with identical renames, mode=\"apply\", and that token to write atomically with rollback. Blocks entirely if any sub-rename fails.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -227,7 +227,7 @@
     },
     {
       "name": "bulk_replace",
-      "description": "Two-stage occurrence-selective pattern replace over the indexed universe. Preview (no selection) returns stable occurrence ids; then pass occurrence_ids or expected_count to plan. literal:true by default.",
+      "description": "Two-stage occurrence-selective pattern replace over the indexed universe. Preview (no selection) returns stable occurrence ids; then pass occurrence_ids or expected_count to plan. literal:true by default. Comments and strings are skipped unless include_trivia is true.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -256,6 +256,11 @@
           "expected_count": {
             "type": "integer"
           },
+          "include_trivia": {
+            "type": "boolean",
+            "default": false,
+            "description": "When true, comments and string literals are matches too. The default scans code only."
+          },
           "output_format": {
             "type": "string",
             "enum": [
@@ -274,7 +279,7 @@
     },
     {
       "name": "organize_imports",
-      "description": "Removes provably-unused named imports from a JS/TS file (a binding is removed only when its name occurs once in the file). Default/namespace imports are reported UNCERTAIN, never removed; sorting is left to the formatter.",
+      "description": "Removes provably-unused named imports. A binding is removed only when its name occurs once. JS/TS default and namespace imports stay uncertain. Rust snake_case use items are counted; CamelCase and pub use stay uncertain. Python from-imports and aliases are counted; a bare import stays uncertain. Go aliases and the last path segment are counted; blank and dot imports stay uncertain.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -408,6 +413,29 @@
         "required": [
           "symbol"
         ]
+      }
+    },
+    {
+      "name": "remove_duplicates",
+      "description": "Plan deletion of exact duplicate function or method declarations. The declaration text, including the name, must match byte for byte. One copy stays. A copy another symbol still uses, an exported copy, and a copy whose body can load code dynamically stay. The file is parsed after the deletion; a result that does not parse is not planned. Returns an edit plan and does not write. Apply it with apply_edit_plan. Pass symbol to limit the plan to that declaration's duplicates.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Optional exact symbol id. When set, only duplicates of this function or method are planned."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "text",
+              "json"
+            ],
+            "default": "text",
+            "description": "text returns concise TextContent; json also returns the stable structuredContent envelope"
+          }
+        },
+        "required": []
       }
     }
   ],

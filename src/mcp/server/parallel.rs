@@ -67,7 +67,7 @@ impl ParallelServer {
         let catalog = ToolCatalog::for_surface(surface).map_err(McpError::Io)?;
         let instructions = match surface {
             ToolSurface::Refactor => {
-                "Refactor extension only: twelve evidence-backed planning, preview, apply, and \
+                "Refactor extension only: thirteen evidence-backed planning, preview, apply, and \
                  rollback tools. Use the separate Weavatrix core server for read-only repository \
                  intelligence. Writes require an explicit gate and a plan-bound single-use token. \
                  Pass repository to select a child of the launch root. Each repository has its own \

@@ -148,7 +148,8 @@ The MCP process pins REPOSITORY and serves many calls at once. Pass repository \
 on a call to use a child directory; each repository keeps its own graph, confirm \
 token, and rollback. --allow-retarget also accepts a repository outside that pin.\n\n\
 Source edits additionally require {}=1 and a plan-bound single-use token. A repository \
-another process is using returns REPO_BUSY and does not spend that token.",
+another process is using returns REPO_BUSY and does not spend that token. Any other \
+repository runs at the same time.",
         WriteGate::VARIABLE
     );
 }
