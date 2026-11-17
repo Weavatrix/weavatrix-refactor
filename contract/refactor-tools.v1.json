@@ -1,11 +1,11 @@
 {
-  "contractVersion": 3,
+  "contractVersion": 4,
   "frozenFrom": {
     "package": "weavatrix-refactor-js",
     "version": "0.1.7",
     "engine": "^0.3.15"
   },
-  "note": "Version 1 was recorded from the shipping JavaScript implementation. Version 2 adds delete_closure and keeps the same result states. Version 3 adds remove_duplicates and keeps those result states. A Rust host is conformant when it exposes exactly these tool names with these schemas, and never emits a status outside resultStates. Additions require a contract version bump.",
+  "note": "Version 1 was recorded from the shipping JavaScript implementation. Version 2 adds delete_closure and keeps the same result states. Version 3 adds remove_duplicates and keeps those result states. Version 4 adds extract_duplicate, extract_window, and share_method_body and keeps those result states. A Rust host is conformant when it exposes exactly these tool names with these schemas, and never emits a status outside resultStates. Additions require a contract version bump.",
   "tools": [
     {
       "name": "rename_symbol",
@@ -424,6 +424,75 @@
           "symbol": {
             "type": "string",
             "description": "Optional exact symbol id. When set, only duplicates of this function or method are planned."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "text",
+              "json"
+            ],
+            "default": "text",
+            "description": "text returns concise TextContent; json also returns the stable structuredContent envelope"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "extract_duplicate",
+      "description": "Plan extraction of a used exact duplicate function. The declaration text, including the name, must match byte for byte. The earliest non-exported Rust copy stays and proven calls of the later copies are retargeted. An unused family stays with remove_duplicates. A method stays with share_method_body. Returns an edit plan and does not write. Apply it with apply_edit_plan. Pass symbol to limit the plan to that function's duplicates.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Optional exact symbol id. When set, only duplicates of this function are planned."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "text",
+              "json"
+            ],
+            "default": "text",
+            "description": "text returns concise TextContent; json also returns the stable structuredContent envelope"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "extract_window",
+      "description": "Plan extraction of a repeated straight-line statement window inside Rust functions. The window is at least four lines, is not a whole declaration, and every free name has a written type. Copies under different cfg attributes stay separate. Returns an edit plan and does not write. Apply it with apply_edit_plan. Pass symbol to limit the plan to that function or method.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Optional exact symbol id. When set, only windows inside this function or method are planned."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "text",
+              "json"
+            ],
+            "default": "text",
+            "description": "text returns concise TextContent; json also returns the stable structuredContent envelope"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "share_method_body",
+      "description": "Plan a shared helper for identical method bodies on different types. Both methods stay as wrappers. The helper takes the fields the body reads, in the order they appear. Same-type methods stay with remove_duplicates. Returns an edit plan and does not write. Apply it with apply_edit_plan. Pass symbol to limit the plan to that method's body.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Optional exact symbol id. When set, only this method's identical bodies are planned."
           },
           "output_format": {
             "type": "string",

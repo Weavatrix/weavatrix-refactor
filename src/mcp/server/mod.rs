@@ -38,7 +38,7 @@ impl RefactorServer {
         let catalog = ToolCatalog::for_surface(surface)?;
         let instructions = match surface {
             ToolSurface::Refactor => {
-                "Refactor extension only: thirteen evidence-backed planning, preview, apply, and \
+                "Refactor extension only: sixteen evidence-backed planning, preview, apply, and \
                  rollback tools. Use the separate Weavatrix core server for read-only repository \
                  intelligence. Writes require an explicit gate and a plan-bound single-use token."
             }

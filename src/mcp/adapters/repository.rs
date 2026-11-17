@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use weavatrix_rust::{Error, Weavatrix};
 use weavatrix_rust_refactor::operations as refactor;
 
-/// Catalog builder for the 13-tool extension or the 2-tool rename workflow.
+/// Catalog builder for the 16-tool extension or the 2-tool rename workflow.
 ///
 /// Refactor uses the read-only engine internally but never exports its methods.
 pub(crate) struct ToolCatalog {
@@ -209,18 +209,18 @@ mod tests {
     }
 
     #[test]
-    fn the_refactor_half_is_exactly_thirteen_tools() {
+    fn the_refactor_half_is_exactly_sixteen_tools() {
         let catalog = ToolCatalog::for_surface(ToolSurface::Refactor).expect("refactor catalog");
-        assert_eq!(catalog.refactor_names.len(), 13);
+        assert_eq!(catalog.refactor_names.len(), 16);
     }
 
     #[test]
-    fn the_refactor_surface_exposes_only_the_thirteen_extension_tools() {
+    fn the_refactor_surface_exposes_only_the_sixteen_extension_tools() {
         let catalog = ToolCatalog::for_surface(ToolSurface::Refactor).expect("refactor catalog");
         assert_eq!(catalog.names, catalog.refactor_names);
-        assert_eq!(catalog.names.len(), 13);
+        assert_eq!(catalog.names.len(), 16);
         assert!(!catalog.names.contains("graph_stats"));
-        assert_eq!(catalog.encoded.as_array().map(Vec::len), Some(13));
+        assert_eq!(catalog.encoded.as_array().map(Vec::len), Some(16));
     }
 
     #[test]

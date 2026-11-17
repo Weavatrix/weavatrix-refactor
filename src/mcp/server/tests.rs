@@ -38,11 +38,11 @@ fn status_of(reply: &ToolReply) -> String {
 }
 
 #[test]
-fn the_default_catalog_exposes_only_all_thirteen_refactor_tools() {
+fn the_default_catalog_exposes_only_all_sixteen_refactor_tools() {
     let mut server = RefactorServer::new(fixture(), WriteGate::closed()).expect("server");
     let catalog = server.catalog();
     let tools = catalog.as_array().expect("catalog is an array");
-    assert_eq!(tools.len(), 13);
+    assert_eq!(tools.len(), 16);
     for name in weavatrix_rust_refactor::operations::catalog_names() {
         assert_eq!(server.has_tool(&name), Some(true), "{name} is not exposed");
     }
@@ -91,7 +91,7 @@ fn the_refactor_profile_hides_core_tools_without_losing_refactor_capabilities() 
                 .map(str::to_owned)
         })
         .collect::<std::collections::BTreeSet<_>>();
-    assert_eq!(names.len(), 13);
+    assert_eq!(names.len(), 16);
     assert_eq!(server.has_tool("graph_stats"), Some(false));
     for name in weavatrix_rust_refactor::operations::catalog_names() {
         assert_eq!(server.has_tool(&name), Some(true), "{name} is not exposed");

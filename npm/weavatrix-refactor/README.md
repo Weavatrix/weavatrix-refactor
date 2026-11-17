@@ -1,6 +1,6 @@
 # weavatrix-refactor
 
-Transactional refactoring MCP extension for coding agents: 13 evidence-backed
+Transactional refactoring MCP extension for coding agents: 16 evidence-backed
 plan/apply tools, hash-bound previews, crash-recoverable writes, and rollback.
 It uses the Rust Weavatrix graph internally without exporting Core methods.
 
@@ -15,7 +15,7 @@ npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=rename
 ```
 
 That profile exposes only `rename_symbol` and `rollback_last_apply`. The default
-`--profile=refactor` surface exposes all 13 Refactor methods.
+`--profile=refactor` surface exposes all 16 Refactor methods.
 
 One process serves many calls at once. Pass `repository` to select a child of
 the launch root. Each child has its own graph, confirm token, and rollback, and
@@ -23,7 +23,7 @@ a token from one child does not apply to another. A path outside the launch
 root needs `--allow-retarget`.
 
 When a separate Weavatrix Core server already supplies the 43 read-only tools,
-load only the 13 Refactor extensions:
+load only the 16 Refactor extensions:
 
 ```bash
 npx -y weavatrix-refactor mcp /absolute/path/to/repository --profile=refactor
@@ -71,6 +71,20 @@ source, including the name, is the same bytes. One copy stays. A copy that is
 still used, exported, or able to load code dynamically stays. Pass `symbol` to
 limit the plan to that declaration. Completeness stays `PARTIAL`. Apply the
 plan with `apply_edit_plan`.
+
+`extract_duplicate` plans extraction of an exact duplicate function that is
+still used. The earliest non-exported Rust copy stays, the later copies are
+deleted, and the calls the graph proves are retargeted. An unused family stays
+with `remove_duplicates`; identical methods stay with `share_method_body`.
+
+`extract_window` plans a helper for a repeated straight-line run of at least
+four Rust statement lines that is not a whole declaration. Every free name
+needs a written type. Copies under different `cfg` attributes stay separate.
+
+`share_method_body` plans one helper for identical method bodies on different
+types. Both methods stay as wrappers, and the helper takes the fields the body
+reads. Each of the three accepts an optional `symbol`, stays `PARTIAL`, and is
+applied with `apply_edit_plan`.
 
 `bulk_replace` plans a literal or regex replacement of indexed code. Comments
 and strings are included only with `include_trivia`. An unknown extension still

@@ -15,6 +15,9 @@ not duplicated here.
 
 - [`edit_symbol`](tools/edit_symbol.md) — symbol-range replacement or insertion. The result is parsed before the plan is returned.
 - [`remove_duplicates`](tools/remove_duplicates.md) — plan deletion of exact duplicate functions or methods. One copy stays. It does not write.
+- [`extract_duplicate`](tools/extract_duplicate.md) — keep the earliest used copy of an exact duplicate Rust function and retarget proven calls of the others. It does not write.
+- [`extract_window`](tools/extract_window.md) — lift a repeated straight-line Rust statement window into a typed helper. Copies under different `cfg` stay apart. It does not write.
+- [`share_method_body`](tools/share_method_body.md) — one helper for identical method bodies on different types. Both methods stay as wrappers. It does not write.
 - [`change_signature`](tools/change_signature.md) — add or remove a parameter in any indexed language. A missed call is edited only when the name is unique. The result stays `PARTIAL`.
 - [`bulk_replace`](tools/bulk_replace.md) — two-stage replacement of indexed code. Comments and strings only when `include_trivia` is true. An unknown extension still skips comments, quotes, and a leading `#`.
 - [`organize_imports`](tools/organize_imports.md) — removes an unused named binding in Rust, Python, Go, Java, C#, C++, and Kotlin. Star imports, headers, namespaces, and unrecognised syntax stay.

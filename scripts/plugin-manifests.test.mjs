@@ -76,7 +76,7 @@ test('the optional skill has one compact card per Refactor method', () => {
         .map((name) => name.slice(0, -3))
         .sort()
 
-    assert.equal(names.length, 13)
+    assert.equal(names.length, 16)
     assert.deepEqual(canonical, names)
     assert.deepEqual(bundled, names)
     assert.equal(
